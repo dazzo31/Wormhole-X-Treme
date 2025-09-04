@@ -18,23 +18,26 @@
  */
 package com.wormhole_xtreme.wormhole.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.logging.Level;
-
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.Sign;
-import org.bukkit.entity.Player;
-
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
 import com.wormhole_xtreme.wormhole.config.ConfigManager;
 import com.wormhole_xtreme.wormhole.logic.StargateUpdateRunnable;
 import com.wormhole_xtreme.wormhole.logic.StargateUpdateRunnable.ActionToTake;
 import com.wormhole_xtreme.wormhole.utils.WorldUtils;
+
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.Sign;
+import org.bukkit.entity.Player;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * WormholeXtreme Stargate Class/Instance.
@@ -46,11 +49,14 @@ import com.wormhole_xtreme.wormhole.utils.WorldUtils;
 public class Stargate
 {
 
+    /** The current database schema version. */
+    private static final int CURRENT_SCHEMA_VERSION = 1;
+    
     /** The Loaded version, used to determine what version of parser to use. */
     private byte loadedVersion = -1;
 
-    /** The Gate id. */
-    private long gateId = -1;
+    /** The gate id. */
+    private int gateId = -1;
     /** Name of this gate, used to index and target. */
     private String gateName = "";
     /** Name of person who made the gate. */
@@ -709,9 +715,19 @@ public class Stargate
      * 
      * @return the gate id
      */
-    public long getGateId()
+    public int getGateId()
     {
         return gateId;
+    }
+
+    /**
+     * Sets the gate id.
+     * 
+     * @param gateId the new gate id
+     */
+    public void setGateId(int gateId)
+    {
+        this.gateId = gateId;
     }
 
     /**
@@ -2298,5 +2314,426 @@ public class Stargate
         }
 
         return false;
+    }
+
+    /**
+     * Serializes this Stargate into a byte array for database storage.
+     * 
+     * @return byte array containing the serialized Stargate data
+     */
+    public byte[] toByteArray() {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             GZIPOutputStream gzos = new GZIPOutputStream(baos);
+             ObjectOutputStream oos = new ObjectOutputStream(gzos)) {
+            
+            Map<String, Object> data = new HashMap<>();
+            
+            // Primitive fields
+            data.put("loadedVersion", loadedVersion);
+            data.put("gateId", gateId);
+            data.put("gateName", gateName);
+            data.put("gateOwner", gateOwner);
+            data.put("gateNetwork", gateNetwork != null ? gateNetwork.getName() : null);
+            data.put("gateShape", gateShape != null ? gateShape.getName() : null);
+            data.put("gateWorld", gateWorld != null ? gateWorld.getUID().toString() : null);
+            data.put("gateActive", gateActive);
+            data.put("gateRecentlyActive", gateRecentlyActive);
+            data.put("gateFacing", gateFacing != null ? gateFacing.name() : null);
+            data.put("gateLightsActive", gateLightsActive);
+            data.put("gateSignPowered", gateSignPowered);
+            data.put("gateRedstonePowered", gateRedstonePowered);
+            data.put("gateTempSignTarget", gateTempSignTarget);
+            data.put("gateDialSignIndex", gateDialSignIndex);
+            data.put("gateTempTargetId", gateTempTargetId);
+            data.put("gateIrisDeactivationCode", gateIrisDeactivationCode);
+            data.put("gateIrisActive", gateIrisActive);
+            data.put("gateIrisDefaultActive", gateIrisDefaultActive);
+            data.put("gateCustom", gateCustom);
+            data.put("gateCustomStructureMaterial", gateCustomStructureMaterial != null ? gateCustomStructureMaterial.name() : null);
+            data.put("gateCustomPortalMaterial", gateCustomPortalMaterial != null ? gateCustomPortalMaterial.name() : null);
+            data.put("gateCustomLightMaterial", gateCustomLightMaterial != null ? gateCustomLightMaterial.name() : null);
+            data.put("gateCustomIrisMaterial", gateCustomIrisMaterial != null ? gateCustomIrisMaterial.name() : null);
+            data.put("gateCustomWooshTicks", gateCustomWooshTicks);
+            data.put("gateCustomLightTicks", gateCustomLightTicks);
+            data.put("gateCustomWooshDepth", gateCustomWooshDepth);
+            data.put("gateCustomWooshDepthSquared", gateCustomWooshDepthSquared);
+            
+            // Location data
+            data.put("gatePlayerTeleportLocation", serializeLocation(gatePlayerTeleportLocation));
+            data.put("gateMinecartTeleportLocation", serializeLocation(gateMinecartTeleportLocation));
+            data.put("gateDialLeverBlock", serializeLocation(gateDialLeverBlock != null ? gateDialLeverBlock.getLocation() : null));
+            data.put("gateIrisLeverBlock", serializeLocation(gateIrisLeverBlock != null ? gateIrisLeverBlock.getLocation() : null));
+            data.put("gateDialSignBlock", serializeLocation(gateDialSignBlock != null ? gateDialSignBlock.getLocation() : null));
+            data.put("gateRedstoneDialActivationBlock", serializeLocation(gateRedstoneDialActivationBlock != null ? gateRedstoneDialActivationBlock.getLocation() : null));
+            data.put("gateRedstoneSignActivationBlock", serializeLocation(gateRedstoneSignActivationBlock != null ? gateRedstoneSignActivationBlock.getLocation() : null));
+            data.put("gateRedstoneGateActivatedBlock", serializeLocation(gateRedstoneGateActivatedBlock != null ? gateRedstoneGateActivatedBlock.getLocation() : null));
+            data.put("gateNameBlockHolder", serializeLocation(gateNameBlockHolder != null ? gateNameBlockHolder.getLocation() : null));
+            
+            // Collections
+            data.put("gateStructureBlocks", serializeLocationList(gateStructureBlocks));
+            data.put("gatePortalBlocks", serializeLocationList(gatePortalBlocks));
+            
+            // Serialize light blocks (List of Lists of Locations)
+            List<List<Map<String, Object>>> serializedLightBlocks = new ArrayList<>();
+            for (List<Location> blockList : gateLightBlocks) {
+                serializedLightBlocks.add(serializeLocationList(blockList));
+            }
+            data.put("gateLightBlocks", serializedLightBlocks);
+            
+            // Serialize woosh blocks (List of Lists of Locations)
+            List<List<Map<String, Object>>> serializedWooshBlocks = new ArrayList<>();
+            for (List<Location> blockList : gateWooshBlocks) {
+                serializedWooshBlocks.add(serializeLocationList(blockList));
+            }
+            data.put("gateWooshBlocks", serializedWooshBlocks);
+            
+            // Write the data map to the output stream
+            oos.writeObject(data);
+            oos.flush();
+            gzos.finish();
+            
+            return baos.toByteArray();
+            
+        } catch (Exception e) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "Failed to serialize Stargate " + gateName + ": " + e.getMessage());
+            return new byte[0];
+        }
+    }
+    
+    /**
+     * Deserializes a Stargate from a byte array.
+     * 
+     * @param data the serialized Stargate data
+     * @return the deserialized Stargate, or null if deserialization failed
+     */
+    @SuppressWarnings("unchecked")
+    public static Stargate fromByteArray(byte[] data) {
+        if (data == null || data.length == 0) {
+            return null;
+        }
+        
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(data);
+             GZIPInputStream gzis = new GZIPInputStream(bais);
+             ObjectInputStream ois = new ObjectInputStream(gzis)) {
+            
+            Map<String, Object> map = (Map<String, Object>) ois.readObject();
+            Stargate stargate = new Stargate();
+            
+            // Primitive fields
+            stargate.loadedVersion = map.containsKey("loadedVersion") ? ((Number) map.get("loadedVersion")).byteValue() : -1;
+            stargate.gateId = map.containsKey("gateId") ? ((Number) map.get("gateId")).intValue() : -1;
+            stargate.gateName = (String) map.getOrDefault("gateName", "");
+            stargate.gateOwner = (String) map.get("gateOwner");
+            
+            String networkName = (String) map.get("gateNetwork");
+            if (networkName != null) {
+                stargate.gateNetwork = StargateNetwork.getNetworkByName(networkName);
+            }
+            
+            String shapeName = (String) map.get("gateShape");
+            if (shapeName != null) {
+                stargate.gateShape = StargateShape.getShape(shapeName);
+            }
+            
+            String worldUuidStr = (String) map.get("gateWorld");
+            if (worldUuidStr != null) {
+                try {
+                    UUID worldUuid = UUID.fromString(worldUuidStr);
+                    stargate.gateWorld = Bukkit.getWorld(worldUuid);
+                } catch (IllegalArgumentException e) {
+                    WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Invalid world UUID in deserialized Stargate: " + worldUuidStr);
+                }
+            }
+            
+            stargate.gateActive = (boolean) map.getOrDefault("gateActive", false);
+            stargate.gateRecentlyActive = (boolean) map.getOrDefault("gateRecentlyActive", false);
+            
+            String facingStr = (String) map.get("gateFacing");
+            if (facingStr != null) {
+                stargate.gateFacing = BlockFace.valueOf(facingStr);
+            }
+            
+            stargate.gateLightsActive = (boolean) map.getOrDefault("gateLightsActive", false);
+            stargate.gateSignPowered = (boolean) map.getOrDefault("gateSignPowered", false);
+            stargate.gateRedstonePowered = (boolean) map.getOrDefault("gateRedstonePowered", false);
+            stargate.gateTempSignTarget = map.containsKey("gateTempSignTarget") ? ((Number) map.get("gateTempSignTarget")).longValue() : -1;
+            stargate.gateDialSignIndex = map.containsKey("gateDialSignIndex") ? ((Number) map.get("gateDialSignIndex")).intValue() : 0;
+            stargate.gateTempTargetId = map.containsKey("gateTempTargetId") ? ((Number) map.get("gateTempTargetId")).longValue() : -1;
+            stargate.gateIrisDeactivationCode = (String) map.getOrDefault("gateIrisDeactivationCode", "");
+            stargate.gateIrisActive = (boolean) map.getOrDefault("gateIrisActive", false);
+            stargate.gateIrisDefaultActive = (boolean) map.getOrDefault("gateIrisDefaultActive", false);
+            stargate.gateCustom = (boolean) map.getOrDefault("gateCustom", false);
+            
+            // Material deserialization
+            String structureMat = (String) map.get("gateCustomStructureMaterial");
+            if (structureMat != null) {
+                try {
+                    stargate.gateCustomStructureMaterial = Material.valueOf(structureMat);
+                } catch (IllegalArgumentException e) {
+                    WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Invalid structure material: " + structureMat);
+                }
+            }
+            
+            String portalMat = (String) map.get("gateCustomPortalMaterial");
+            if (portalMat != null) {
+                try {
+                    stargate.gateCustomPortalMaterial = Material.valueOf(portalMat);
+                } catch (IllegalArgumentException e) {
+                    WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Invalid portal material: " + portalMat);
+                }
+            }
+            
+            String lightMat = (String) map.get("gateCustomLightMaterial");
+            if (lightMat != null) {
+                try {
+                    stargate.gateCustomLightMaterial = Material.valueOf(lightMat);
+                } catch (IllegalArgumentException e) {
+                    WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Invalid light material: " + lightMat);
+                }
+            }
+            
+            String irisMat = (String) map.get("gateCustomIrisMaterial");
+            if (irisMat != null) {
+                try {
+                    stargate.gateCustomIrisMaterial = Material.valueOf(irisMat);
+                } catch (IllegalArgumentException e) {
+                    WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Invalid iris material: " + irisMat);
+                }
+            }
+            
+            stargate.gateCustomWooshTicks = map.containsKey("gateCustomWooshTicks") ? ((Number) map.get("gateCustomWooshTicks")).intValue() : -1;
+            stargate.gateCustomLightTicks = map.containsKey("gateCustomLightTicks") ? ((Number) map.get("gateCustomLightTicks")).intValue() : -1;
+            stargate.gateCustomWooshDepth = map.containsKey("gateCustomWooshDepth") ? ((Number) map.get("gateCustomWooshDepth")).intValue() : -1;
+            stargate.gateCustomWooshDepthSquared = map.containsKey("gateCustomWooshDepthSquared") ? ((Number) map.get("gateCustomWooshDepthSquared")).intValue() : -1;
+            
+            // Deserialize locations
+            stargate.gatePlayerTeleportLocation = deserializeLocation((Map<String, Object>) map.get("gatePlayerTeleportLocation"));
+            stargate.gateMinecartTeleportLocation = deserializeLocation((Map<String, Object>) map.get("gateMinecartTeleportLocation"));
+            
+            // Deserialize block locations and get blocks
+            Location dialLeverLoc = deserializeLocation((Map<String, Object>) map.get("gateDialLeverBlock"));
+            stargate.gateDialLeverBlock = dialLeverLoc != null ? dialLeverLoc.getBlock() : null;
+            
+            Location irisLeverLoc = deserializeLocation((Map<String, Object>) map.get("gateIrisLeverBlock"));
+            stargate.gateIrisLeverBlock = irisLeverLoc != null ? irisLeverLoc.getBlock() : null;
+            
+            Location dialSignLoc = deserializeLocation((Map<String, Object>) map.get("gateDialSignBlock"));
+            stargate.gateDialSignBlock = dialSignLoc != null ? dialSignLoc.getBlock() : null;
+            
+            Location redstoneDialLoc = deserializeLocation((Map<String, Object>) map.get("gateRedstoneDialActivationBlock"));
+            stargate.gateRedstoneDialActivationBlock = redstoneDialLoc != null ? redstoneDialLoc.getBlock() : null;
+            
+            Location redstoneSignLoc = deserializeLocation((Map<String, Object>) map.get("gateRedstoneSignActivationBlock"));
+            stargate.gateRedstoneSignActivationBlock = redstoneSignLoc != null ? redstoneSignLoc.getBlock() : null;
+            
+            Location redstoneGateLoc = deserializeLocation((Map<String, Object>) map.get("gateRedstoneGateActivatedBlock"));
+            stargate.gateRedstoneGateActivatedBlock = redstoneGateLoc != null ? redstoneGateLoc.getBlock() : null;
+            
+            Location nameBlockLoc = deserializeLocation((Map<String, Object>) map.get("gateNameBlockHolder"));
+            stargate.gateNameBlockHolder = nameBlockLoc != null ? nameBlockLoc.getBlock() : null;
+            
+            // Deserialize collections
+            stargate.gateStructureBlocks.clear();
+            stargate.gateStructureBlocks.addAll(deserializeLocationList((List<Map<String, Object>>) map.get("gateStructureBlocks")));
+            
+            stargate.gatePortalBlocks.clear();
+            stargate.gatePortalBlocks.addAll(deserializeLocationList((List<Map<String, Object>>) map.get("gatePortalBlocks")));
+            
+            // Deserialize light blocks (List of Lists of Locations)
+            stargate.gateLightBlocks.clear();
+            List<List<Map<String, Object>>> serializedLightBlocks = (List<List<Map<String, Object>>>) map.get("gateLightBlocks");
+            if (serializedLightBlocks != null) {
+                for (List<Map<String, Object>> blockList : serializedLightBlocks) {
+                    stargate.gateLightBlocks.add(deserializeLocationList(blockList));
+                }
+            }
+            
+            // Deserialize woosh blocks (List of Lists of Locations)
+            stargate.gateWooshBlocks.clear();
+            List<List<Map<String, Object>>> serializedWooshBlocks = (List<List<Map<String, Object>>>) map.get("gateWooshBlocks");
+            if (serializedWooshBlocks != null) {
+                for (List<Map<String, Object>> blockList : serializedWooshBlocks) {
+                    stargate.gateWooshBlocks.add(deserializeLocationList(blockList));
+                }
+            }
+            
+            // After deserialization, we need to re-initialize some fields
+            if (stargate.gateDialSignBlock != null && stargate.gateDialSignBlock.getState() instanceof Sign) {
+                stargate.gateDialSign = (Sign) stargate.gateDialSignBlock.getState();
+            }
+            
+            return stargate;
+            
+        } catch (Exception e) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "Failed to deserialize Stargate: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Helper method to serialize a Location to a Map.
+     * 
+     * @param loc the Location to serialize
+     * @return a Map containing the serialized Location data, or null if loc is null
+     */
+    private static Map<String, Object> serializeLocation(Location loc) {
+        if (loc == null) {
+            return null;
+        }
+        
+        Map<String, Object> map = new HashMap<>();
+        map.put("world", loc.getWorld() != null ? loc.getWorld().getUID().toString() : null);
+        map.put("x", loc.getX());
+        map.put("y", loc.getY());
+        map.put("z", loc.getZ());
+        map.put("yaw", loc.getYaw());
+        map.put("pitch", loc.getPitch());
+        
+        return map;
+    }
+    
+    /**
+     * Helper method to deserialize a Location from a Map.
+     * 
+     * @param map the Map containing the serialized Location data
+     * @return the deserialized Location, or null if map is null or invalid
+     */
+    private static Location deserializeLocation(Map<String, Object> map) {
+        if (map == null || map.isEmpty()) {
+            return null;
+        }
+        
+        try {
+            String worldUuidStr = (String) map.get("world");
+            if (worldUuidStr == null) {
+                return null;
+            }
+            
+            UUID worldUuid = UUID.fromString(worldUuidStr);
+            World world = Bukkit.getWorld(worldUuid);
+            if (world == null) {
+                return null;
+            }
+            
+            double x = ((Number) map.getOrDefault("x", 0.0)).doubleValue();
+            double y = ((Number) map.getOrDefault("y", 0.0)).doubleValue();
+            double z = ((Number) map.getOrDefault("z", 0.0)).doubleValue();
+            float yaw = ((Number) map.getOrDefault("yaw", 0.0f)).floatValue();
+            float pitch = ((Number) map.getOrDefault("pitch", 0.0f)).floatValue();
+            
+            return new Location(world, x, y, z, yaw, pitch);
+            
+        } catch (Exception e) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Failed to deserialize location: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Helper method to serialize a List of Locations to a List of Maps.
+     * 
+     * @param locations the List of Locations to serialize
+     * @return a List of Maps containing the serialized Location data
+     */
+    private static List<Map<String, Object>> serializeLocationList(List<Location> locations) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (locations != null) {
+            for (Location loc : locations) {
+                Map<String, Object> serialized = serializeLocation(loc);
+                if (serialized != null) {
+                    result.add(serialized);
+                }
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * Helper method to deserialize a List of Maps to a List of Locations.
+     * 
+     * @param locationMaps the List of Maps containing the serialized Location data
+     * @return a List of deserialized Locations
+     */
+    private static List<Location> deserializeLocationList(List<Map<String, Object>> locationMaps) {
+        List<Location> result = new ArrayList<>();
+        if (locationMaps != null) {
+            for (Map<String, Object> map : locationMaps) {
+                Location loc = deserializeLocation(map);
+                if (loc != null) {
+                    result.add(loc);
+                }
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * Updates this Stargate's fields from another Stargate instance.
+     * This is typically used to update a cached Stargate with fresh data from the database.
+     * 
+     * @param updatedGate the Stargate with updated data
+     */
+    public void updateFrom(Stargate updatedGate) {
+        if (updatedGate == null) {
+            return;
+        }
+        
+        // Update all fields that should be persisted
+        this.gateName = updatedGate.gateName;
+        this.gateOwner = updatedGate.gateOwner;
+        this.gateNetwork = updatedGate.gateNetwork;
+        this.gateShape = updatedGate.gateShape;
+        this.gateWorld = updatedGate.gateWorld;
+        this.gateFacing = updatedGate.gateFacing;
+        this.gateIrisDeactivationCode = updatedGate.gateIrisDeactivationCode;
+        this.gateIrisDefaultActive = updatedGate.gateIrisDefaultActive;
+        this.gateCustom = updatedGate.gateCustom;
+        this.gateCustomStructureMaterial = updatedGate.gateCustomStructureMaterial;
+        this.gateCustomPortalMaterial = updatedGate.gateCustomPortalMaterial;
+        this.gateCustomLightMaterial = updatedGate.gateCustomLightMaterial;
+        this.gateCustomIrisMaterial = updatedGate.gateCustomIrisMaterial;
+        this.gateCustomWooshTicks = updatedGate.gateCustomWooshTicks;
+        this.gateCustomLightTicks = updatedGate.gateCustomLightTicks;
+        this.gateCustomWooshDepth = updatedGate.gateCustomWooshDepth;
+        this.gateCustomWooshDepthSquared = updatedGate.gateCustomWooshDepthSquared;
+        
+        // Update locations
+        this.gatePlayerTeleportLocation = updatedGate.gatePlayerTeleportLocation != null ? 
+                updatedGate.gatePlayerTeleportLocation.clone() : null;
+        this.gateMinecartTeleportLocation = updatedGate.gateMinecartTeleportLocation != null ? 
+                updatedGate.gateMinecartTeleportLocation.clone() : null;
+        
+        // Update block references
+        this.gateDialLeverBlock = updatedGate.gateDialLeverBlock;
+        this.gateIrisLeverBlock = updatedGate.gateIrisLeverBlock;
+        this.gateDialSignBlock = updatedGate.gateDialSignBlock;
+        this.gateRedstoneDialActivationBlock = updatedGate.gateRedstoneDialActivationBlock;
+        this.gateRedstoneSignActivationBlock = updatedGate.gateRedstoneSignActivationBlock;
+        this.gateRedstoneGateActivatedBlock = updatedGate.gateRedstoneGateActivatedBlock;
+        this.gateNameBlockHolder = updatedGate.gateNameBlockHolder;
+        
+        // Update collections
+        this.gateStructureBlocks.clear();
+        this.gateStructureBlocks.addAll(updatedGate.gateStructureBlocks);
+        
+        this.gatePortalBlocks.clear();
+        this.gatePortalBlocks.addAll(updatedGate.gatePortalBlocks);
+        
+        this.gateLightBlocks.clear();
+        for (List<Location> blockList : updatedGate.gateLightBlocks) {
+            this.gateLightBlocks.add(new ArrayList<>(blockList));
+        }
+        
+        this.gateWooshBlocks.clear();
+        for (List<Location> blockList : updatedGate.gateWooshBlocks) {
+            this.gateWooshBlocks.add(new ArrayList<>(blockList));
+        }
+        
+        // Update sign reference if needed
+        if (this.gateDialSignBlock != null && this.gateDialSignBlock.getState() instanceof Sign) {
+            this.gateDialSign = (Sign) this.gateDialSignBlock.getState();
+        } else {
+            this.gateDialSign = null;
+        }
     }
 }

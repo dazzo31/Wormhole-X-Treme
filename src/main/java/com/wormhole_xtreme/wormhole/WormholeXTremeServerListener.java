@@ -22,7 +22,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.server.ServerListener;
 
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 import com.wormhole_xtreme.wormhole.plugin.HelpSupport;
 import com.wormhole_xtreme.wormhole.plugin.PermissionsSupport;
 import com.wormhole_xtreme.wormhole.plugin.WormholeWorldsSupport;
@@ -42,15 +42,16 @@ class WormholeXTremeServerListener extends ServerListener
     @Override
     public void onPluginDisable(final PluginDisableEvent event)
     {
-        if (event.getPlugin().getDescription().getName().equals("Permissions") && !ConfigManager.getPermissionsSupportDisable())
+        final WormholeConfig config = WormholeXTreme.getThisPlugin().getWormholeConfig();
+        if (event.getPlugin().getDescription().getName().equals("Permissions") && !config.get(WormholeConfig.PERMISSIONS_SUPPORT_DISABLE))
         {
             PermissionsSupport.disablePermissions();
         }
-        else if (event.getPlugin().getDescription().getName().equals("Help") && !ConfigManager.getHelpSupportDisable())
+        else if (event.getPlugin().getDescription().getName().equals("Help") && !config.get(WormholeConfig.HELP_SUPPORT_DISABLE))
         {
             HelpSupport.disableHelp();
         }
-        else if (event.getPlugin().getDescription().getName().equals("WormholeXTremeWorlds") && ConfigManager.isWormholeWorldsSupportEnabled())
+        else if (event.getPlugin().getDescription().getName().equals("WormholeXTremeWorlds") && config.get(WormholeConfig.WORLDS_SUPPORT_ENABLED))
         {
             WormholeWorldsSupport.disableWormholeWorlds();
         }
@@ -62,15 +63,16 @@ class WormholeXTremeServerListener extends ServerListener
     @Override
     public void onPluginEnable(final PluginEnableEvent event)
     {
-        if (event.getPlugin().getDescription().getName().equals("Permissions") && !ConfigManager.getPermissionsSupportDisable())
+        final WormholeConfig config = WormholeXTreme.getThisPlugin().getWormholeConfig();
+        if (event.getPlugin().getDescription().getName().equals("Permissions") && !config.get(WormholeConfig.PERMISSIONS_SUPPORT_DISABLE))
         {
             PermissionsSupport.enablePermissions();
         }
-        else if (event.getPlugin().getDescription().getName().equals("Help") && !ConfigManager.getHelpSupportDisable())
+        else if (event.getPlugin().getDescription().getName().equals("Help") && !config.get(WormholeConfig.HELP_SUPPORT_DISABLE))
         {
             HelpSupport.enableHelp();
         }
-        else if (event.getPlugin().getDescription().getName().equals("WormholeXTremeWorlds") && ConfigManager.isWormholeWorldsSupportEnabled())
+        else if (event.getPlugin().getDescription().getName().equals("WormholeXTremeWorlds") && config.get(WormholeConfig.WORLDS_SUPPORT_ENABLED))
         {
             WormholeWorldsSupport.enableWormholeWorlds();
         }

@@ -1,72 +1,149 @@
 name: WormholeXTreme
 main: com.wormhole_xtreme.wormhole.WormholeXTreme
-version: 0.854
-authors: [Lologarithm, alron]
-softdepend: [Permissions, Help, WormholeXTremeWorlds]
+version: 1.0.0
+api-version: '1.21'
 description: >
-             Wormhole X-Treme! Wormholes as travel portals. Splash Effect, IDC,
-             Iris, configurable Wormhole materials, and much much more.
-             
+  Wormhole X-Treme! Wormholes as travel portals. Splash Effect, IDC,
+  Iris, configurable Wormhole materials, and much much more.
+authors: [Lologarithm, alron]
+website: https://www.wormhole-xtreme.com
+softdepend: [Vault, WorldGuard, WorldEdit]
+
+# Plugin load order (POSTWORLD = after worlds load)
+load: POSTWORLD
+
+# Plugin libraries (for Maven dependencies)
+libraries:
+  - com.github.MilkBowl:VaultAPI:1.7
+
+# Permissions
+permissions:
+  wormhole.*:
+    description: Gives access to all WormholeXTreme commands and features
+    default: op
+    children:
+      wormhole.build: true
+      wormhole.use: true
+      wormhole.admin: true
+      wormhole.bypass: true
+
+  wormhole.build:
+    description: Allows building and modifying stargates
+    default: true
+
+  wormhole.use:
+    description: Allows using stargates
+    default: true
+
+  wormhole.admin:
+    description: Access to admin commands and features
+    default: op
+
+  wormhole.bypass:
+    description: Bypass stargate restrictions
+    default: op
+
+# Command configurations
 commands:
-   dial:
-     description: Dial a remote Stargate, unlock IDC with optional password 
-     usage: |
-            /<command> <StarGate> [IDC]
-            <stargate> The StarGate to dial.
-            [IDC] Use optional password to open remote Iris.
-                     
-            
-   wormhole:
-     description: Wormhole administration and configuration commands.
-     usage: |
-            /<command> <commandtype> [ARG1] [ARG2]
-            Valid Commandtypes - owner, perms, portalmaterial, irismaterial, lightmaterial, shutdown_timeout, activate_timeout, simple, regenerate, redstone, and custom.
+  dial:
+    description: Dial a remote Stargate, unlock IDC with optional password
+    usage: |
+      /<command> <StarGate> [IDC]
+      <stargate> The StarGate to dial.
+      [IDC] Use optional password to open remote Iris.
+    permission: wormhole.use
+    permission-message: You don't have permission to use this command.
+    aliases: [dialgate, sgdial]
 
-   wxlist:
-     description: List all Stargates.
-     usage: |
-            /<command> - List all Stargates.
-            
-   wxbuild:
-     description: Automatically Build Stargate.
-     usage: |
-            /<command> <GateShape>
-            <GateShape> The GateShape to build.
-            After placing a DHD with a button (and sign if wanted) running this command then pressing the button will cause the specified <GateShape> to be built.
-            
-   wxremove:
-     description: Remove a stargate, optionally destroy its blocks.
-     usage: |
-            /<command> <GateName> [-all]
-            <GateName> The GateName to remove.
-            [-all] destroys gate blocks too.
+  wormhole:
+    description: Wormhole administration and configuration commands
+    usage: |
+      /<command> <commandtype> [ARG1] [ARG2]
+      Valid Commandtypes - owner, perms, portalmaterial, irismaterial, lightmaterial, 
+      shutdown_timeout, activate_timeout, simple, regenerate, redstone, and custom.
+    permission: wormhole.admin
+    permission-message: You don't have permission to use this command.
+    aliases: [wh, wg]
 
-   wxcompass:
-     description: Point compass needle at nearest Stargate.
-     usage: |
-            /<command> - Point compass needle at nearest Stargate.
-            
-   wxcomplete:
-     description: Complete StarGate construction.
-     usage: |
-            /<command> <GateName> idc=[IDC] net=[Net]
-            <GateName> The name to give new Stargate.
-            [IDC] Optional password to give Stargate.
-            [Net] Optional network for Stargate.
-            
-   wxidc:
-     description: Gets or sets a gates IDC code.
-     usage: |
-            /<command> <GateName> <optional_set_idc>
-            Requires being either owner or have wormhole.config
-            set -clear to remove the IDC
+  wxlist:
+    description: List all Stargates
+    usage: /<command>
+    permission: wormhole.use
+    permission-message: You don't have permission to use this command.
+    aliases: [sggates, sglist]
 
-   wxforce:
-     description: Forcefully shut down, darken, and open the iris of either a single or all gates.
-     usage: |
-            /<command> <gateName|-all>
+  wxbuild:
+    description: Automatically Build Stargate
+    usage: |
+      /<command> <GateShape>
+      <GateShape> The GateShape to build.
+    permission: wormhole.build
+    permission-message: You don't have permission to build stargates.
+    aliases: [sgbuild, buildgate]
 
-   wxgo:
-     description: Teleport to specified wormhole.
-     usage: |
-            /<command> <GateName>
+  wxremove:
+    description: Remove a stargate, optionally destroy its blocks
+    usage: |
+      /<command> <GateName> [-all]
+      <GateName> The GateName to remove.
+      [-all] destroys gate blocks too.
+    permission: wormhole.build
+    permission-message: You don't have permission to remove stargates.
+    aliases: [sgremove, removegate]
+
+  wxcompass:
+    description: Point compass needle at nearest Stargate
+    usage: /<command>
+    permission: wormhole.use
+    permission-message: You don't have permission to use this command.
+    aliases: [sgcompass, findgate]
+
+  wxcomplete:
+    description: Complete StarGate construction
+    usage: |
+      /<command> <GateName> idc=[IDC] net=[Net]
+      <GateName> The name to give new Stargate.
+      [IDC] Optional password to give Stargate.
+      [Net] Optional network for Stargate.
+    permission: wormhole.build
+    permission-message: You don't have permission to complete stargates.
+    aliases: [sgcomplete, complete]
+
+  wxidc:
+    description: Gets or sets a gates IDC code
+    usage: |
+      /<command> <GateName> <optional_set_idc>
+      set -clear to remove the IDC
+    permission: wormhole.build
+    permission-message: You don't have permission to modify IDC codes.
+    aliases: [sgidc, setidc]
+
+  wxforce:
+    description: Forcefully shut down, darken, and open the iris of gates
+    usage: /<command> <gateName|-all>
+    permission: wormhole.admin
+    permission-message: You don't have admin permissions.
+    aliases: [sgforce, forcegate]
+
+  wxgo:
+    description: Teleport to specified wormhole
+    usage: /<command> <GateName>
+    permission: wormhole.use
+    permission-message: You don't have permission to use stargates.
+    aliases: [sgto, gotogate]
+
+  wxreload:
+    description: Reload the plugin configuration
+    usage: /<command>
+    permission: wormhole.admin
+    permission-message: You don't have permission to reload the plugin.
+    aliases: [sgreload, reloadgates]
+
+# Tab completion
+completers:
+  dial: []
+  wormhole: ["owner", "perms", "portalmaterial", "irismaterial", "lightmaterial", "shutdown_timeout", "activate_timeout", "simple", "regenerate", "redstone", "custom"]
+  wxbuild: []
+  wxremove: []
+  wxidc: []
+  wxforce: []

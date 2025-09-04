@@ -24,7 +24,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.nijikokun.bukkit.Permissions.Permissions;
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 
 /**
  * The Class PermissionsSupport.
@@ -67,7 +67,7 @@ public class PermissionsSupport
      */
     public static void enablePermissions()
     {
-        if ( !ConfigManager.getPermissionsSupportDisable())
+        if (!WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.PERMISSIONS_DISABLE))
         {
             if (WormholeXTreme.getPermissions() == null)
             {
@@ -80,7 +80,7 @@ public class PermissionsSupport
                     {
                         WormholeXTreme.setPermissions(((Permissions) test).getHandler());
                         WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Attached to Permissions version " + v);
-                        if (ConfigManager.getSimplePermissions())
+                        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.SIMPLE_PERMISSIONS))
                         {
                             WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Simple Permissions Enabled");
                         }

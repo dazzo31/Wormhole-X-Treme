@@ -25,7 +25,7 @@ import me.taylorkelly.help.Help;
 import org.bukkit.plugin.Plugin;
 
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 
 /**
  * The Class HelpPlugin.
@@ -66,7 +66,7 @@ public class HelpSupport
      */
     public static void enableHelp()
     {
-        if ( !ConfigManager.getHelpSupportDisable())
+        if (!WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.HELP_DISABLE))
         {
             if (WormholeXTreme.getHelp() == null)
             {
@@ -102,7 +102,7 @@ public class HelpSupport
      */
     public static void registerHelpCommands()
     {
-        if ((WormholeXTreme.getHelp() != null) && !ConfigManager.getHelpSupportDisable())
+        if ((WormholeXTreme.getHelp() != null) && !WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.HELP_DISABLE))
         {
             final String[] cp = new String[]{"wormhole.use.sign", "wormhole.use.dialer", "wormhole.use.compass",
                 "wormhole.remove.own", "wormhole.remove.all", "wormhole.build", "wormhole.config", "wormhole.list",
@@ -123,7 +123,7 @@ public class HelpSupport
             String wormhole;
             if (WormholeXTreme.getPermissions() != null)
             {
-                if (ConfigManager.getSimplePermissions())
+                if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.SIMPLE_PERMISSIONS))
                 {
                     dial = sp[0];
                     wxidc = sp[2];

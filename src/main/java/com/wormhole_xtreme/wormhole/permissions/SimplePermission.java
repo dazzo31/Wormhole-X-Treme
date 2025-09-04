@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import org.bukkit.entity.Player;
 
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 
 /**
  * The Enum SimplePermission.
@@ -94,7 +94,7 @@ enum SimplePermission
      */
     protected boolean checkPermission(final Player player)
     {
-        if ((player != null) && !ConfigManager.getPermissionsSupportDisable() && (WormholeXTreme.getPermissions() != null) && ConfigManager.getSimplePermissions())
+        if ((player != null) && !WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.PERMISSIONS_DISABLE) && (WormholeXTreme.getPermissions() != null) && WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.SIMPLE_PERMISSIONS))
         {
             if (WormholeXTreme.getPermissions().has(player, simplePermissionNode))
             {

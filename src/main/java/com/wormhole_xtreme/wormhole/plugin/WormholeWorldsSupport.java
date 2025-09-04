@@ -24,7 +24,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.wormhole_xtreme.worlds.WormholeXTremeWorlds;
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 import com.wormhole_xtreme.wormhole.model.StargateDBManager;
 
 /**
@@ -69,7 +69,7 @@ public class WormholeWorldsSupport
      */
     public static void enableWormholeWorlds()
     {
-        if (ConfigManager.isWormholeWorldsSupportEnabled())
+        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.WORLD_SUPPORT_ENABLED))
         {
             if (WormholeXTreme.getWorldHandler() == null)
             {

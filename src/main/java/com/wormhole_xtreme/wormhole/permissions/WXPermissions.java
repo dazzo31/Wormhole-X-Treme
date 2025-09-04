@@ -21,7 +21,7 @@ package com.wormhole_xtreme.wormhole.permissions;
 import org.bukkit.entity.Player;
 
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 import com.wormhole_xtreme.wormhole.model.Stargate;
 import com.wormhole_xtreme.wormhole.permissions.PermissionsManager.PermissionLevel;
 
@@ -81,211 +81,188 @@ public class WXPermissions
     }
 
     /**
-     * Check wx permissions.
+     * Check if a player has a specific permission.
      * 
-     * @param player
-     *            the player
-     * @param permissiontype
-     *            the permissiontype
-     * @return true, if successful
+     * @param player the player to check
+     * @param permissionType the type of permission to check
+     * @return true if the player has the permission, false otherwise
      */
-    public static boolean checkWXPermissions(final Player player, final PermissionType permissiontype)
-    {
-        return checkWXPermissions(player, null, null, permissiontype);
+    public static boolean checkWXPermissions(final Player player, final PermissionType permissionType) {
+        return checkWXPermissions(player, null, null, permissionType);
     }
 
     /**
-     * Check wx permisssions.
+     * Check if a player has a specific permission for a stargate.
      * 
-     * @param player
-     *            the player
-     * @param stargate
-     *            the stargate
-     * @param permissionstype
-     *            the permissionstype
-     * @return true, if successful
+     * @param player the player to check
+     * @param stargate the stargate to check permissions for
+     * @param permissionType the type of permission to check
+     * @return true if the player has the permission, false otherwise
      */
-    public static boolean checkWXPermissions(final Player player, final Stargate stargate, final PermissionType permissionstype)
-    {
-        return checkWXPermissions(player, stargate, null, permissionstype);
+    public static boolean checkWXPermissions(final Player player, final Stargate stargate, final PermissionType permissionType) {
+        return checkWXPermissions(player, stargate, null, permissionType);
     }
 
     /**
-     * Check wx permissions.
+     * Check if a player has a specific permission for a stargate and network.
      * 
-     * @param player
-     *            the player
-     * @param stargate
-     *            the stargate
-     * @param network
-     *            the network
-     * @param permissiontype
-     *            the permissiontype
-     * @return true, if successful
+     * @param player the player to check
+     * @param stargate the stargate to check permissions for
+     * @param network the network to check permissions for
+     * @param permissionType the type of permission to check
+     * @return true if the player has the permission, false otherwise
      */
-    private static boolean checkWXPermissions(final Player player, final Stargate stargate, final String network, final PermissionType permissiontype)
-    {
-        if (player == null)
-        {
+    public static boolean checkWXPermissions(final Player player, final Stargate stargate, 
+                                           final String network, final PermissionType permissionType) {
+        if (player == null) {
             return false;
         }
-        if (player.isOp())
-        {
-            switch (permissiontype)
-            {
-                case DAMAGE :
-                case REMOVE :
-                case CONFIG :
-                case GO :
-                case SIGN :
-                case DIALER :
-                case USE :
-                case LIST :
-                case COMPASS :
-                case BUILD :
-                    return true;
-                default :
-                    return false;
-            }
-        }
-        else if ( !ConfigManager.getPermissionsSupportDisable() && (WormholeXTreme.getPermissions() != null))
-        {
 
-            if (ConfigManager.getSimplePermissions())
-            {
-                switch (permissiontype)
-                {
-                    case LIST :
-                        return (SimplePermission.CONFIG.checkPermission(player) || SimplePermission.USE.checkPermission(player));
-                    case GO :
-                    case CONFIG :
-                        return SimplePermission.CONFIG.checkPermission(player);
-                    case DAMAGE :
-                    case REMOVE :
-                        return (SimplePermission.REMOVE.checkPermission(player) || SimplePermission.CONFIG.checkPermission(player));
-                    case COMPASS :
-                    case SIGN :
-                    case DIALER :
-                    case USE :
-                        return SimplePermission.USE.checkPermission(player);
-                    case BUILD :
-                        return SimplePermission.BUILD.checkPermission(player);
-                    default :
-                        return false;
-                }
-            }
-            else
-            {
-                String networkName = "Public";
-                switch (permissiontype)
-                {
-                    case LIST :
-                        return (ComplexPermission.LIST.checkPermission(player) || ComplexPermission.CONFIG.checkPermission(player));
-                    case CONFIG :
-                        return ComplexPermission.CONFIG.checkPermission(player);
-                    case GO :
-                        return ComplexPermission.GO.checkPermission(player);
-                    case COMPASS :
-                        return ComplexPermission.USE_COMPASS.checkPermission(player);
-                    case DAMAGE :
-                    case REMOVE :
-                        return (ComplexPermission.CONFIG.checkPermission(player) || ComplexPermission.REMOVE_ALL.checkPermission(player) || ComplexPermission.REMOVE_OWN.checkPermission(player, stargate));
-                    case SIGN :
-                        if ((stargate != null) && (stargate.getGateNetwork() != null))
-                        {
-                            networkName = stargate.getGateNetwork().getNetworkName();
-                        }
-                        return ((ComplexPermission.USE_SIGN.checkPermission(player) && (networkName.equals("Public") || ( !networkName.equals("Public") && ComplexPermission.NETWORK_USE.checkPermission(player, networkName)))));
-                    case DIALER :
-                        if ((stargate != null) && (stargate.getGateNetwork() != null))
-                        {
-                            networkName = stargate.getGateNetwork().getNetworkName();
-                        }
-                        return ((ComplexPermission.USE_DIALER.checkPermission(player) && (networkName.equals("Public") || ( !networkName.equals("Public") && ComplexPermission.NETWORK_USE.checkPermission(player, networkName)))));
-                    case USE :
-                        if ((stargate != null) && (stargate.getGateNetwork() != null))
-                        {
-                            networkName = stargate.getGateNetwork().getNetworkName();
-                        }
-                        return (((ComplexPermission.USE_SIGN.checkPermission(player) && (networkName.equals("Public") || ( !networkName.equals("Public") && ComplexPermission.NETWORK_USE.checkPermission(player, networkName)))) || (ComplexPermission.USE_DIALER.checkPermission(player) && (networkName.equals("Public") || ( !networkName.equals("Public") && ComplexPermission.NETWORK_USE.checkPermission(player, networkName))))));
-                    case BUILD :
-                        if (stargate != null)
-                        {
-                            if (stargate.getGateNetwork() != null)
-                            {
-                                networkName = stargate.getGateNetwork().getNetworkName();
-                            }
-                        }
-                        else
-                        {
-                            if (network != null)
-                            {
-                                networkName = network;
-                            }
-                        }
-                        return ((ComplexPermission.BUILD.checkPermission(player) && (networkName.equals("Public") || ( !networkName.equals("Public") && ComplexPermission.NETWORK_BUILD.checkPermission(player, networkName)))));
-                    case USE_COOLDOWN_GROUP_ONE :
-                        return ComplexPermission.USE_COOLDOWN_GROUP_ONE.checkPermission(player);
-                    case USE_COOLDOWN_GROUP_TWO :
-                        return ComplexPermission.USE_COOLDOWN_GROUP_TWO.checkPermission(player);
-                    case USE_COOLDOWN_GROUP_THREE :
-                        return ComplexPermission.USE_COOLDOWN_GROUP_THREE.checkPermission(player);
-                    case BUILD_RESTRICTION_GROUP_ONE :
-                        return ComplexPermission.BUILD_RESTRICTION_GROUP_ONE.checkPermission(player);
-                    case BUILD_RESTRICTION_GROUP_TWO :
-                        return ComplexPermission.BUILD_RESTRICTION_GROUP_TWO.checkPermission(player);
-                    case BUILD_RESTRICTION_GROUP_THREE :
-                        return ComplexPermission.BUILD_RESTRICTION_GROUP_THREE.checkPermission(player);
-                    default :
-                        return false;
-                }
+        // Check if Vault permissions are enabled and available
+        if (VaultPermissions.isEnabled()) {
+            String permissionNode = buildPermissionNode(stargate, network, permissionType);
+            if (permissionNode != null) {
+                return VaultPermissions.hasPermission(player, permissionNode) || 
+                       player.isOp() || 
+                       player.hasPermission("wormhole.bypass");
             }
         }
-        else
-        {
-            if (stargate != null)
-            {
-                PermissionLevel lvl = null;
-                switch (permissiontype)
-                {
-                    case DAMAGE :
-                    case REMOVE :
-                    case CONFIG :
-                    case GO :
-                        lvl = PermissionsManager.getPermissionLevel(player, stargate);
-                        return (lvl == PermissionLevel.WORMHOLE_FULL_PERMISSION);
-                    case SIGN :
-                    case DIALER :
-                    case USE :
-                    case LIST :
-                    case COMPASS :
-                        lvl = PermissionsManager.getPermissionLevel(player, stargate);
-                        return (lvl == PermissionLevel.WORMHOLE_CREATE_PERMISSION) || (lvl == PermissionLevel.WORMHOLE_USE_PERMISSION) || (lvl == PermissionLevel.WORMHOLE_FULL_PERMISSION);
-                    case BUILD :
-                        lvl = PermissionsManager.getPermissionLevel(player, stargate);
-                        return (lvl == PermissionLevel.WORMHOLE_CREATE_PERMISSION) || (lvl == PermissionLevel.WORMHOLE_FULL_PERMISSION);
-                    default :
-                        return false;
-
-                }
-            }
+        
+        // Fall back to built-in permissions if Vault is not available
+        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILTIN_PERMISSIONS_ENABLED)) {
+            return PermissionsManager.checkWXPermissions(player, stargate, network, permissionType);
         }
-        return false;
+        
+        // Default to true if no permission system is enabled
+        return true;
+    }
+    
+    /**
+     * Build the permission node string based on the stargate, network, and permission type.
+     * 
+     * @param stargate the stargate (can be null)
+     * @param network the network name (can be null)
+     * @param permissionType the type of permission
+     * @return the permission node string, or null if invalid
+     */
+    private static String buildPermissionNode(Stargate stargate, String network, PermissionType permissionType) {
+        if (permissionType == null) {
+            return null;
+        }
+        
+        StringBuilder node = new StringBuilder("wormhole.");
+        
+        // Add network if available
+        if (network != null && !network.isEmpty()) {
+            node.append("network.").append(network.toLowerCase()).append(".");
+        } 
+        // Or add stargate name if available
+        else if (stargate != null && stargate.getGateName() != null) {
+            node.append("gate.").append(stargate.getGateName().toLowerCase()).append(".");
+        }
+        
+        // Add permission type
+        switch (permissionType) {
+            case DAMAGE:
+                node.append("damage");
+                break;
+            case SIGN:
+                node.append("sign");
+                break;
+            case DIALER:
+                node.append("dialer");
+                break;
+            case BUILD:
+                node.append("build");
+                break;
+            case REMOVE:
+                node.append("remove");
+                break;
+            case USE:
+                node.append("use");
+                break;
+            case LIST:
+                node.append("list");
+                break;
+            case CONFIG:
+                node.append("config");
+                break;
+            case GO:
+                node.append("go");
+                break;
+            case COMPASS:
+                node.append("compass");
+                break;
+            case USE_COOLDOWN_GROUP_ONE:
+                node.append("cooldown.group1");
+                break;
+            case USE_COOLDOWN_GROUP_TWO:
+                node.append("cooldown.group2");
+                break;
+            case USE_COOLDOWN_GROUP_THREE:
+                node.append("cooldown.group3");
+                break;
+            case BUILD_RESTRICTION_GROUP_ONE:
+                node.append("restrict.build.group1");
+                break;
+            case BUILD_RESTRICTION_GROUP_TWO:
+                node.append("restrict.build.group2");
+                break;
+            case BUILD_RESTRICTION_GROUP_THREE:
+                node.append("restrict.build.group3");
+                break;
+            default:
+                return null;
+        }
+        
+        return node.toString();
     }
 
     /**
-     * Check wx permissions.
+     * Check if a player has a specific permission for a network.
      * 
-     * @param player
-     *            the player
-     * @param network
-     *            the network
-     * @param permissiontype
-     *            the permissiontype
-     * @return true, if successful
+     * @param player the player to check
+     * @param network the network to check permissions for
+     * @param permissionType the type of permission to check
+     * @return true if the player has the permission, false otherwise
      */
-    public static boolean checkWXPermissions(final Player player, final String network, final PermissionType permissiontype)
-    {
-        return checkWXPermissions(player, null, network, permissiontype);
+    public static boolean checkWXPermissions(final Player player, final String network, final PermissionType permissionType) {
+        return checkWXPermissions(player, null, network, permissionType);
+    }
+    
+    /**
+     * Gets the WX permission level for a player.
+     * 
+     * @param player the player to check
+     * @return the permission level
+     */
+    public static PermissionLevel getWXPermissionsLevel(final Player player) {
+        if (player == null) {
+            return PermissionLevel.WORMHOLE_NO_PERMISSION;
+        }
+
+        // Check Vault permissions first if available
+        if (VaultPermissions.isEnabled()) {
+            if (VaultPermissions.hasPermission(player, "wormhole.admin") || 
+                VaultPermissions.hasPermission(player, "wormhole.*")) {
+                return PermissionLevel.WORMHOLE_FULL_PERMISSION;
+            } else if (VaultPermissions.hasPermission(player, "wormhole.create")) {
+                return PermissionLevel.WORMHOLE_CREATE_PERMISSION;
+            } else if (VaultPermissions.hasPermission(player, "wormhole.use")) {
+                return PermissionLevel.WORMHOLE_USE_PERMISSION;
+            } else if (VaultPermissions.hasPermission(player, "wormhole")) {
+                return PermissionLevel.WORMHOLE_USE_PERMISSION;
+            } else {
+                return PermissionLevel.WORMHOLE_NO_PERMISSION;
+            }
+        }
+        
+        // Fall back to built-in permissions if Vault is not available
+        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILTIN_PERMISSIONS_ENABLED)) {
+            return PermissionsManager.getPermissionLevel(player, null);
+        }
+        
+        // Default to full permission if no permission system is enabled
+        return PermissionLevel.WORMHOLE_FULL_PERMISSION;
     }
 }

@@ -31,7 +31,7 @@ import org.bukkit.event.vehicle.VehicleListener;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.util.Vector;
 
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 import com.wormhole_xtreme.wormhole.event.StargateMinecartTeleportEvent;
 import com.wormhole_xtreme.wormhole.model.Stargate;
 import com.wormhole_xtreme.wormhole.model.StargateManager;
@@ -89,29 +89,29 @@ class WormholeXTremeVehicleListener extends VehicleListener
             {
                 final Player p = (Player) e;
                 WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, "Minecart Player in gate:" + st.getGateName() + " gate Active: " + st.isGateActive() + " Target Gate: " + st.getGateTarget().getGateName() + " Network: " + gatenetwork);
-                if (ConfigManager.getWormholeUseIsTeleport() && ((st.isGateSignPowered() && !WXPermissions.checkWXPermissions(p, st, PermissionType.SIGN)) || ( !st.isGateSignPowered() && !WXPermissions.checkWXPermissions(p, st, PermissionType.DIALER))))
+                if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.WORMHOLE_USE_IS_TELEPORT) && ((st.isGateSignPowered() && !WXPermissions.checkWXPermissions(p, st, PermissionType.SIGN)) || ( !st.isGateSignPowered() && !WXPermissions.checkWXPermissions(p, st, PermissionType.DIALER))))
                 {
-                    p.sendMessage(ConfigManager.MessageStrings.permissionNo.toString());
+                    p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_PERMISSION_DENIED));
                     return false;
                 }
                 if (st.getGateTarget().isGateIrisActive())
                 {
-                    p.sendMessage(ConfigManager.MessageStrings.errorHeader.toString() + "Remote Iris is locked!");
+                    p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_ERROR_HEADER) + "Remote Iris is locked!");
                     veh.teleport(st.getGateMinecartTeleportLocation() != null
                         ? st.getGateMinecartTeleportLocation()
                         : st.getGatePlayerTeleportLocation());
-                    if (ConfigManager.getTimeoutShutdown() == 0)
+                    if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.TIMEOUT_SHUTDOWN) == 0)
                     {
                         st.shutdownStargate(true);
                     }
                     return false;
                 }
-                if (ConfigManager.isUseCooldownEnabled())
+                if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.USE_COOLDOWN_ENABLED))
                 {
                     if (StargateRestrictions.isPlayerUseCooldown(p))
                     {
-                        p.sendMessage(ConfigManager.MessageStrings.playerUseCooldownRestricted.toString());
-                        p.sendMessage(ConfigManager.MessageStrings.playerUseCooldownWaitTime.toString() + StargateRestrictions.checkPlayerUseCooldownRemaining(p));
+                        p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_COOLDOWN_RESTRICTED));
+                        p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_COOLDOWN_WAIT) + StargateRestrictions.checkPlayerUseCooldownRemaining(p));
                         return false;
                     }
                     else
@@ -128,7 +128,7 @@ class WormholeXTremeVehicleListener extends VehicleListener
                     veh.teleport(st.getGateMinecartTeleportLocation() != null
                         ? st.getGateMinecartTeleportLocation()
                         : st.getGatePlayerTeleportLocation());
-                    if (ConfigManager.getTimeoutShutdown() == 0)
+                    if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.TIMEOUT_SHUTDOWN) == 0)
                     {
                         st.shutdownStargate(true);
                     }
@@ -195,7 +195,7 @@ class WormholeXTremeVehicleListener extends VehicleListener
                 }
             }
 
-            if (ConfigManager.getTimeoutShutdown() == 0)
+            if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.TIMEOUT_SHUTDOWN) == 0)
             {
                 st.shutdownStargate(true);
             }

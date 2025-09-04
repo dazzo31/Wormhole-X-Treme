@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
 
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
-import com.wormhole_xtreme.wormhole.config.ConfigManager;
+import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 import com.wormhole_xtreme.wormhole.logic.StargateUpdateRunnable;
 import com.wormhole_xtreme.wormhole.logic.StargateUpdateRunnable.ActionToTake;
 import com.wormhole_xtreme.wormhole.model.Stargate;
@@ -45,16 +45,16 @@ public class StargateRestrictions
     {
 
         /** The cooldown group 1 */
-        CD_GROUP_ONE(ConfigManager.getUseCooldownGroupOne()),
+        CD_GROUP_ONE(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.USE_COOLDOWN_GROUP_ONE)),
 
         /** The cooldown group 2 */
-        CD_GROUP_TWO(ConfigManager.getUseCooldownGroupTwo()),
+        CD_GROUP_TWO(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.USE_COOLDOWN_GROUP_TWO)),
 
         /** The cooldown group 3 */
-        CD_GROUP_THREE(ConfigManager.getUseCooldownGroupThree()),
-        BR_GROUP_ONE(ConfigManager.getBuildRestrictionGroupOne()),
-        BR_GROUP_TWO(ConfigManager.getBuildRestrictionGroupTwo()),
-        BR_GROUP_THREE(ConfigManager.getBuildRestrictionGroupThree());
+        CD_GROUP_THREE(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.USE_COOLDOWN_GROUP_THREE)),
+        BR_GROUP_ONE(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILD_RESTRICTION_GROUP_ONE)),
+        BR_GROUP_TWO(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILD_RESTRICTION_GROUP_TWO)),
+        BR_GROUP_THREE(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILD_RESTRICTION_GROUP_THREE));
 
         /** The restriction group node. */
         private final long restrictionGroupNode;
@@ -166,7 +166,7 @@ public class StargateRestrictions
      */
     public static boolean isPlayerBuildRestricted(final Player player)
     {
-        if (ConfigManager.isBuildRestrictionEnabled())
+        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.USE_BUILD_RESTRICTION))
         {
             RestrictionGroup restrictionGroup = null;
             if (WXPermissions.checkWXPermissions(player, PermissionType.BUILD_RESTRICTION_GROUP_ONE))
