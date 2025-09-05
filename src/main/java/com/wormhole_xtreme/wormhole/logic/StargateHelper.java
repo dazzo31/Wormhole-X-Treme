@@ -60,6 +60,8 @@ public class StargateHelper
 
     /** The Constant shapes. */
     private static final ConcurrentHashMap<String, StargateShape> stargateShapes = new ConcurrentHashMap<String, StargateShape>();
+    // Tracks whether we've already emitted the INFO-level summary listing loaded shapes.
+    private static volatile boolean shapesInfoLogged = false;
 
     /** The Constant StargateSaveVersion. */
     private static final byte StargateSaveVersion = 8;
@@ -858,12 +860,25 @@ public class StargateHelper
         }
 
         // INFO level summary so administrators see shapes without elevating global log level.
-        try {
-            final java.util.List<String> names = new java.util.ArrayList<>(getStargateShapes().keySet());
-            java.util.Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Loaded " + names.size() + " stargate shape(s): " + names);
-        } catch (Exception ex) {
-            WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, "Failed listing loaded shapes: " + ex.getMessage());
+        logLoadedShapesSummary();
+    }
+
+    /**
+     * Logs the loaded shapes summary if not already logged. Public so onEnable can re-emit
+     * in case server console rotation or plugin load timing hid onLoad output.
+     */
+    public static void logLoadedShapesSummary() {
+        if (shapesInfoLogged) return;
+        synchronized (StargateHelper.class) {
+            if (shapesInfoLogged) return;
+            try {
+                final java.util.List<String> names = new java.util.ArrayList<>(getStargateShapes().keySet());
+                java.util.Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+                WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Loaded " + names.size() + " stargate shape(s): " + names);
+                shapesInfoLogged = true;
+            } catch (Exception ex) {
+                WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, "Failed listing loaded shapes: " + ex.getMessage());
+            }
         }
     }
 

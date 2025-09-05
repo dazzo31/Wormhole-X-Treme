@@ -405,6 +405,8 @@ public void reload() {
         if (!wormholeConfig.get(WormholeConfig.WORLDS_SUPPORT_ENABLED)) {
             registerEvents(false);
             registerCommands();
+            // Redundant shape summary log in case onLoad output was missed
+            try { com.wormhole_xtreme.wormhole.logic.StargateHelper.logLoadedShapesSummary(); } catch (Exception ignored) {}
             prettyLog(Level.INFO, true, "Enable Completed.");
         }
     } catch (final Exception e) {
