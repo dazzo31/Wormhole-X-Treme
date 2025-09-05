@@ -13,9 +13,21 @@ Upgrade Guidance:
 No data or config changes.
 
 Wormhole X-Treme 1.0.2 (2025-09-05)
+Wormhole X-Treme 1.0.4 (2025-09-05)
 ------------------------------------
-Stability & completion pass for the modernization effort. Focus on database pooling reliability, listener/event API migration, legacy material & world handling, and permissions/config clean up.
+Maintenance & visibility update.
 
+Changes:
+ - Added INFO-level summary listing loaded shape names (previously only visible at CONFIG level) to aid administrators diagnosing missing/incorrect shapes.
+ - Bundled default 2D shape templates on first run (prefixed with 2d_) when no shape files exist.
+ - Replaced deprecated STATIONARY_WATER values in bundled shapes with WATER (already handled at runtime but now removed from distribution).
+ - Added mockito-inline test dependency to support future mocking adjustments.
+
+No data migrations. Safe drop-in over 1.0.3.
+
+Upgrade Guidance: Replace jar; verify startup log now shows: "Loaded N stargate shape(s): [...]".
+
+Stability & completion pass for the modernization effort. Focus on database pooling reliability, listener/event API migration, legacy material & world handling, and permissions/config clean up.
 Highlights:
  - Fixed database pool startup (HikariCP + embedded HSQLDB) by adding explicit driver dependency and disabling shade minimization so reflective classes (DataSource, SLF4J providers) are preserved.
  - Removed SLF4J relocation; simple logger binding now discovered without fallback NOP warning.
