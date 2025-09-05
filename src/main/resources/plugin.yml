@@ -12,9 +12,7 @@ softdepend: [Vault, WorldGuard, WorldEdit]
 # Plugin load order (POSTWORLD = after worlds load)
 load: POSTWORLD
 
-# Plugin libraries (for Maven dependencies)
-libraries:
-  - com.github.MilkBowl:VaultAPI:1.7
+# Note: External libraries are shaded via Maven; Vault is provided by server plugin.
 
 # Permissions
 permissions:
