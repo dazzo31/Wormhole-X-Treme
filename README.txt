@@ -1,5 +1,6 @@
 Wormhole X-Treme v1.0.4 (Modernized)
 ====================================
+NOTE: Canonical maintained documentation has moved to README.md. This README.txt is retained temporarily for historical reference and will be removed in a future release.
 
 Travel instantly between locations using buildable Stargates with dial signs, activation levers, iris security, networks, and configurable materials.
 
