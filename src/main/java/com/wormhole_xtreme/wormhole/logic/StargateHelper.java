@@ -723,11 +723,12 @@ public class StargateHelper
         {
             BufferedReader br = null;
             BufferedWriter bw = null;
-            final String[] defaultShapeNames = {"Standard.shape", "StandardSignDial.shape", "Minimal.shape",
-                "MinimalSignDial.shape"};
+            // Provide a starter set of both 3d and 2d shape files if none exist yet.
+            final String[] default3DShapeNames = {"Standard.shape", "StandardSignDial.shape", "Minimal.shape", "MinimalSignDial.shape"};
+            final String[] default2DShapeNames = {"Standard.shape", "Minimal.shape"};
             try
             {
-                for (final String shape : defaultShapeNames)
+                for (final String shape : default3DShapeNames)
                 {
                     final File defaultShapeFile = new File("plugins" + File.separator + "WormholeXTreme" + File.separator + "GateShapes" + File.separator + shape);
                     final InputStream is = WormholeXTreme.class.getResourceAsStream("/GateShapes/3d/" + shape);
@@ -743,6 +744,23 @@ public class StargateHelper
                     br.close();
                     bw.close();
                     is.close();
+                }
+                // Copy 2d shapes
+                for (final String shape : default2DShapeNames)
+                {
+                    final File defaultShapeFile = new File("plugins" + File.separator + "WormholeXTreme" + File.separator + "GateShapes" + File.separator + "2d_" + shape);
+                    final InputStream is = WormholeXTreme.class.getResourceAsStream("/GateShapes/2d/" + shape);
+                    if (is != null) {
+                        br = new BufferedReader(new InputStreamReader(is));
+                        bw = new BufferedWriter(new FileWriter(defaultShapeFile));
+                        for (String s = ""; (s = br.readLine()) != null;) {
+                            bw.write(s);
+                            bw.write("\n");
+                        }
+                        br.close();
+                        bw.close();
+                        is.close();
+                    }
                 }
             }
             catch (final IOException e)
@@ -781,7 +799,7 @@ public class StargateHelper
         }
 
         final File[] shapeFiles = directory.listFiles(filenameFilter);
-        for (final File fi : shapeFiles)
+    for (final File fi : shapeFiles)
         {
             if (fi.getName().contains(".shape"))
             {
@@ -837,6 +855,15 @@ public class StargateHelper
         if (getStargateShapes().size() == 0)
         {
             getStargateShapes().put("Standard", new StargateShape());
+        }
+
+        // INFO level summary so administrators see shapes without elevating global log level.
+        try {
+            final java.util.List<String> names = new java.util.ArrayList<>(getStargateShapes().keySet());
+            java.util.Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Loaded " + names.size() + " stargate shape(s): " + names);
+        } catch (Exception ex) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, "Failed listing loaded shapes: " + ex.getMessage());
         }
     }
 

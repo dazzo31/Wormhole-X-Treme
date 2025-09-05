@@ -5,6 +5,7 @@ Hotfix: legacy 2D shape material parsing (STATIONARY_WATER / STATIONARY_LAVA / P
 Changes:
  - Added resolveMaterial() to `StargateShape` (2D shapes) mirroring logic already present for 3D shapes.
  - Fallback defaults to WATER with warning log if an unknown material name is encountered.
+ - Replaced deprecated STATIONARY_WATER entries in bundled shape files with WATER and updated comment suggestions to modern names (WATER, LAVA, NETHER_PORTAL, AIR).
 
 Upgrade Guidance:
  Replace 1.0.2 jar with 1.0.3 if you encountered: "No enum constant org.bukkit.Material.STATIONARY_WATER" while loading shape files.
