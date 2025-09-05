@@ -31,7 +31,7 @@ import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
-import com.wormhole_xtreme.worlds.handler.WorldHandler;
+// Use local WorldHandler stub in this package (no external dependency)
 import com.wormhole_xtreme.wormhole.command.Build;
 import com.wormhole_xtreme.wormhole.command.Compass;
 import com.wormhole_xtreme.wormhole.command.Complete;
@@ -44,14 +44,12 @@ import com.wormhole_xtreme.wormhole.command.WXRemove;
 import com.wormhole_xtreme.wormhole.command.Wormhole;
 import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 import com.wormhole_xtreme.wormhole.logic.StargateHelper;
-import com.wormhole_xtreme.wormhole.model.Stargate;
 import com.wormhole_xtreme.wormhole.database.DatabaseInitializer;
 import com.wormhole_xtreme.wormhole.database.DatabaseManager;
 import com.wormhole_xtreme.wormhole.database.StargateRepository;
 import com.wormhole_xtreme.wormhole.model.StargateManager;
 import com.wormhole_xtreme.wormhole.permissions.PermissionsManager;
 import com.wormhole_xtreme.wormhole.plugin.HelpSupport;
-import com.wormhole_xtreme.wormhole.plugin.PermissionsSupport;
 import com.wormhole_xtreme.wormhole.plugin.WormholeWorldsSupport;
 import com.wormhole_xtreme.wormhole.utils.DBUpdateUtil;
 
@@ -62,11 +60,25 @@ import com.wormhole_xtreme.wormhole.utils.DBUpdateUtil;
  * @author Dean Bailey (alron)
  */
 public class WormholeXTreme extends JavaPlugin {
+    // Legacy setter wrappers now functional to keep older static-style calls working
+    public static void setThisPlugin(WormholeXTreme plugin) { instance = plugin; }
+    public static void setLog(Logger logger) { log = logger; }
+    public static void setScheduler(BukkitScheduler sched) { scheduler = sched; }
+    public static void setPrettyLogLevel(Object o) {
+        if (o == null || log == null) return;
+        try {
+            if (o instanceof Level lvl) {
+                log.setLevel(lvl);
+            } else if (o instanceof String s) {
+                log.setLevel(Level.parse(s));
+            }
+        } catch (IllegalArgumentException ignored) { /* ignore malformed levels */ }
+    }
     // Vault Services
     private static Economy econ = null;
     private static Permission perms = null;
     private static Chat chat = null;
-    private static boolean vaultEnabled = false;
+    // Vault enabled flag not required; presence is inferred from provider availability
 
     // Configuration
     private WormholeConfig wormholeConfig;
@@ -83,12 +95,12 @@ public class WormholeXTreme extends JavaPlugin {
     private static WorldHandler worldHandler;
 
     // Listeners
-    private final WormholeXTremePlayerListener playerListener = new WormholeXTremePlayerListener(this);
-    private final WormholeXTremeBlockListener blockListener = new WormholeXTremeBlockListener(this);
-    private final WormholeXTremeVehicleListener vehicleListener = new WormholeXTremeVehicleListener(this);
-    private final WormholeXTremeEntityListener entityListener = new WormholeXTremeEntityListener(this);
-    private final WormholeXTremeServerListener serverListener = new WormholeXTremeServerListener(this);
-    private final WormholeXTremeRedstoneListener redstoneListener = new WormholeXTremeRedstoneListener(this);
+    private final WormholeXTremePlayerListener playerListener = new WormholeXTremePlayerListener();
+    private final WormholeXTremeBlockListener blockListener = new WormholeXTremeBlockListener();
+    private final WormholeXTremeVehicleListener vehicleListener = new WormholeXTremeVehicleListener();
+    private final WormholeXTremeEntityListener entityListener = new WormholeXTremeEntityListener();
+    private final WormholeXTremeServerListener serverListener = new WormholeXTremeServerListener();
+    private final WormholeXTremeRedstoneListener redstoneListener = new WormholeXTremeRedstoneListener();
 
     /**
      * Gets the plugin instance.
@@ -96,6 +108,15 @@ public class WormholeXTreme extends JavaPlugin {
      * @return the plugin instance
      */
     public static WormholeXTreme getInstance() {
+        return instance;
+    }
+
+    /**
+     * Returns the singleton instance of this plugin.
+     * @return WormholeXTreme instance
+     */
+    public static WormholeXTreme getThisPlugin() {
+        // TODO: Replace with actual plugin instance retrieval if needed
         return instance;
     }
 
@@ -158,123 +179,7 @@ public class WormholeXTreme extends JavaPlugin {
         }
     }
 
-    /**
-     * Gets the logger.
-     *
-     * @return the logger instance
-     */
-    public static Logger getLog() {
-        return log;
-    }
-
-    /**
-     * Gets the Vault Economy instance.
-     *
-     * @return the economy instance
-     */
-    public static Economy getEconomy() {
-        return econ;
-    }
-
-    /**
-     * Gets the Vault Permissions instance.
-     *
-     * @return the permissions instance
-     */
-    public static Permission getPermissions() {
-        return perms;
-    }
-
-    /**
-     * Gets the Vault Chat instance.
-     *
-     * @return the chat instance
-     */
-    public static Chat getChat() {
-        return chat;
-    }
-
-    /**
-     * Gets the Bukkit scheduler.
-     *
-     * @return the scheduler instance
-     */
-    public static BukkitScheduler getScheduler() {
-        return scheduler;
-    }
-
-    /**
-     * Gets the WorldHandler instance.
-     *
-     * @return the world handler instance
-     */
-    public static WorldHandler getWorldHandler() {
-        return worldHandler;
-    }
-
-    /**
-     * Register commands.
-     */
-    private void registerCommands() {
-        Objects.requireNonNull(getCommand("wxforce")).setExecutor(new Force(this));
-        Objects.requireNonNull(getCommand("wxidc")).setExecutor(new WXIDC(this));
-        Objects.requireNonNull(getCommand("wxcompass")).setExecutor(new Compass(this));
-        Objects.requireNonNull(getCommand("wxcomplete")).setExecutor(new Complete(this));
-        Objects.requireNonNull(getCommand("wxremove")).setExecutor(new WXRemove(this));
-        Objects.requireNonNull(getCommand("wxlist")).setExecutor(new WXList(this));
-        Objects.requireNonNull(getCommand("wxgo")).setExecutor(new Go(this));
-        Objects.requireNonNull(getCommand("dial")).setExecutor(new Dial(this));
-        Objects.requireNonNull(getCommand("wxbuild")).setExecutor(new Build(this));
-        Objects.requireNonNull(getCommand("wormhole")).setExecutor(new Wormhole(this));
-    }
-
-    /**
-     * Register event listeners.
-     */
-    private void registerListeners() {
-        PluginManager pm = getServer().getPluginManager();
-
-        // Register event listeners
-        pm.registerEvents(playerListener, this);
-        pm.registerEvents(blockListener, this);
-        pm.registerEvents(vehicleListener, this);
-        pm.registerEvents(entityListener, this);
-        pm.registerEvents(serverListener, this);
-        pm.registerEvents(redstoneListener, this);
-    }
-
-    /**
-     * Set up Vault integration.
-     *
-     * @return true if Vault was set up successfully
-     */
-    private boolean setupVault() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            getLog().warning("Vault not found. Some features may not work correctly.");
-            return false;
-        }
-
-        RegisteredServiceProvider<Permission> rsp = getServer().getServicesManager().getRegistration(Permission.class);
-        if (rsp != null) {
-            perms = rsp.getProvider();
-        }
-
-        RegisteredServiceProvider<Economy> rspEcon = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rspEcon != null) {
-            econ = rspEcon.getProvider();
-        }
-
-        RegisteredServiceProvider<Chat> rspChat = getServer().getServicesManager().getRegistration(Chat.class);
-        if (rspChat != null) {
-            chat = rspChat.getProvider();
-        }
-
-        return true;
-    } catch (Exception e) {
-        getLogger().log(Level.SEVERE, "Error initializing database", e);
-        return false;
-    }
-}
+    // ...existing code...
 
 /**
  * Gets the logger.
@@ -331,19 +236,27 @@ public static WorldHandler getWorldHandler() {
 }
 
 /**
+ * Sets the WorldHandler instance.
+ * (Compatibility wrapper for legacy support classes.)
+ */
+public static void setWorldHandler(WorldHandler handler) {
+    worldHandler = handler;
+}
+
+/**
  * Register commands.
  */
 private void registerCommands() {
-    Objects.requireNonNull(getCommand("wxforce")).setExecutor(new Force(this));
-    Objects.requireNonNull(getCommand("wxidc")).setExecutor(new WXIDC(this));
-    Objects.requireNonNull(getCommand("wxcompass")).setExecutor(new Compass(this));
-    Objects.requireNonNull(getCommand("wxcomplete")).setExecutor(new Complete(this));
-    Objects.requireNonNull(getCommand("wxremove")).setExecutor(new WXRemove(this));
-    Objects.requireNonNull(getCommand("wxlist")).setExecutor(new WXList(this));
-    Objects.requireNonNull(getCommand("wxgo")).setExecutor(new Go(this));
-    Objects.requireNonNull(getCommand("dial")).setExecutor(new Dial(this));
-    Objects.requireNonNull(getCommand("wxbuild")).setExecutor(new Build(this));
-    Objects.requireNonNull(getCommand("wormhole")).setExecutor(new Wormhole(this));
+    Objects.requireNonNull(getCommand("wxforce")).setExecutor(new Force());
+    Objects.requireNonNull(getCommand("wxidc")).setExecutor(new WXIDC());
+    Objects.requireNonNull(getCommand("wxcompass")).setExecutor(new Compass());
+    Objects.requireNonNull(getCommand("wxcomplete")).setExecutor(new Complete());
+    Objects.requireNonNull(getCommand("wxremove")).setExecutor(new WXRemove());
+    Objects.requireNonNull(getCommand("wxlist")).setExecutor(new WXList());
+    Objects.requireNonNull(getCommand("wxgo")).setExecutor(new Go());
+    Objects.requireNonNull(getCommand("dial")).setExecutor(new Dial());
+    Objects.requireNonNull(getCommand("wxbuild")).setExecutor(new Build());
+    Objects.requireNonNull(getCommand("wormhole")).setExecutor(new Wormhole());
 }
 
 /**
@@ -359,6 +272,19 @@ private void registerListeners() {
     pm.registerEvents(entityListener, this);
     pm.registerEvents(serverListener, this);
     pm.registerEvents(redstoneListener, this);
+}
+
+// Static wrappers for legacy support classes to call during enable flows
+public static void registerEvents(boolean minimal) {
+    if (instance != null) {
+        instance.registerListeners();
+    }
+}
+
+public static void runRegisterCommands() {
+    if (instance != null) {
+        instance.registerCommands();
+    }
 }
 
 /**
@@ -390,6 +316,12 @@ private boolean setupVault() {
     return true;
 }
 
+// Minimal placeholder to preserve legacy call sites
+private void setupPermissions() {
+    // Vault permissions/chat/economy (if present) are already wired by setupVault().
+    // Legacy external permissions plugin support is disabled by default in config.
+}
+
 @Override
 public void onEnable() {
     // Set up plugin instance and logger
@@ -400,7 +332,7 @@ public void onEnable() {
     // Set up configuration
     try {
         // Initialize new config
-        wormholeConfig = new WormholeConfig(this);
+    wormholeConfig = new WormholeConfig(this);
         
         // Migrate from old config if needed
         ConfigMigrationUtil.migrateOldConfig(this);
@@ -411,8 +343,8 @@ public void onEnable() {
         return;
     }
     
-    // Set up Vault
-    vaultEnabled = setupVault();
+    // Set up Vault (optional)
+    setupVault();
     
     // Set up database
     if (!initializeDatabase()) {
@@ -438,8 +370,8 @@ public void onEnable() {
         }
     }
     
-    // Load stargates from database
-    StargateManager.loadAllStargates();
+    // Load stargates from database into memory
+    StargateManager.initialize(this);
     
     prettyLog(Level.INFO, true, "has been enabled!");
 }
@@ -451,14 +383,8 @@ public void onDisable() {
         databaseManager.shutdown();
     }
 
-    // Save any pending data
-    StargateManager.saveAllGates();
-
     // Cancel all tasks
     scheduler.cancelTasks(this);
-
-    // Close database connection
-    StargateDBManager.closeConnection();
 
     getLog().info("WormholeXTreme has been disabled!");
 }
@@ -468,75 +394,59 @@ public void onDisable() {
  */
 public void reload() {
     try {
-        // Reload configuration
-
-        // Save any pending data
-        StargateManager.saveAllGates();
-
-        // Cancel all tasks
-        scheduler.cancelTasks(this);
-
-        // Close database connection
-        StargateDBManager.closeConnection();
-
-        getLog().info("WormholeXTreme has been disabled!");
-    }
-
-    /**
-     * Reloads the plugin configuration and stargates.
-     */
-    public void reload() {
         wormholeConfig.reload();
         prettyLog(Level.INFO, false, "Configuration reloaded.");
-            }
-            
-            HelpSupport.enableHelp();
-            if (wormholeConfig.get(WormholeConfig.WORLD_SUPPORT_ENABLED))
-            {
-                WormholeWorldsSupport.enableWormholeWorlds();
-            }
+        HelpSupport.enableHelp();
+        if (wormholeConfig.get(WormholeConfig.WORLDS_SUPPORT_ENABLED)) {
+            WormholeWorldsSupport.enableWormholeWorlds();
         }
-        catch (final Exception e)
-        {
-            prettyLog(Level.WARNING, false, "Caught Exception while trying to load support plugins: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
         registerEvents(true);
         HelpSupport.registerHelpCommands();
-        if (!wormholeConfig.get(WormholeConfig.WORLD_SUPPORT_ENABLED))
-        {
+        if (!wormholeConfig.get(WormholeConfig.WORLDS_SUPPORT_ENABLED)) {
             registerEvents(false);
             registerCommands();
             prettyLog(Level.INFO, true, "Enable Completed.");
         }
+    } catch (final Exception e) {
+        prettyLog(Level.WARNING, false, "Caught Exception while trying to load support plugins: " + e.getMessage());
+        e.printStackTrace();
     }
+}
 
     /* (non-Javadoc)
      * @see org.bukkit.plugin.java.JavaPlugin#onLoad()
      */
     @Override
-    public void onLoad()
-    {
-        setThisPlugin(this);
-        setLog(getThisPlugin().getServer().getLogger());
-        setScheduler(getThisPlugin().getServer().getScheduler());
+    public void onLoad() {
+        // Establish static context early so any legacy static calls succeed
+        instance = this;
+        log = getLogger();
+        scheduler = getServer().getScheduler();
 
         prettyLog(Level.INFO, true, "Load Beginning.");
-        // Load our config files and set logging level right away.
-        wormholeConfig = new WormholeConfig(this);
-        wormholeConfig.load();
-        WormholeXTreme.setPrettyLogLevel(wormholeConfig.get(WormholeConfig.LOG_LEVEL));
-        // Make sure DB is up to date with latest SCHEMA
-        DBUpdateUtil.updateDB();
-        // Load our shapes, stargates, and internal permissions.
-        StargateHelper.loadShapes();
-        if (!wormholeConfig.get(WormholeConfig.WORLD_SUPPORT_ENABLED))
-        {
-            prettyLog(Level.INFO, true, "Wormhole Worlds support disabled in settings.txt, loading stargates and worlds ourself.");
-            StargateDBManager.loadStargates(getThisPlugin().getServer());
+        // Initialize configuration early (minimal)
+        try {
+            wormholeConfig = new WormholeConfig(this);
+            setPrettyLogLevel(wormholeConfig.get(WormholeConfig.LOG_LEVEL));
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Failed to load configuration during onLoad", e);
         }
-        PermissionsManager.loadPermissions();
+
+        // DB schema update (legacy compatibility) - guarded
+        try { DBUpdateUtil.updateDB(); } catch (Exception e) {
+            getLogger().log(Level.WARNING, "DB update failed during onLoad (will retry onEnable): " + e.getMessage());
+        }
+
+        // Load gate shapes (safe to do here)
+        try { StargateHelper.loadShapes(); } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Failed loading gate shapes: " + e.getMessage(), e);
+        }
+
+        // Permissions pre-load (non-fatal)
+        try { PermissionsManager.loadPermissions(); } catch (Exception e) {
+            getLogger().log(Level.WARNING, "Permissions preload failed: " + e.getMessage());
+        }
+
         prettyLog(Level.INFO, true, "Load Completed.");
     }
 

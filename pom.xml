@@ -2,7 +2,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.wormhole_xtreme.wormhole</groupId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
     <artifactId>WormholeXTreme</artifactId>
     <packaging>jar</packaging>
     <name>Wormhole-X-Treme</name>
@@ -91,6 +91,12 @@
             <artifactId>configme</artifactId>
             <version>1.4.1</version>
         </dependency>
+        <!-- HSQLDB embedded database driver (legacy data storage) -->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.7.2</version>
+        </dependency>
         
         <!-- Test Dependencies -->
         <dependency>
@@ -156,7 +162,9 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <minimizeJar>true</minimizeJar>
+                            <!-- Disable minimization so reflective & service-loaded classes (HSQLDB DataSource, SLF4J providers) are retained -->
+                            <minimizeJar>false</minimizeJar>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
                             <relocations>
                                 <relocation>
                                     <pattern>ch.jalu.configme</pattern>
@@ -165,10 +173,6 @@
                                 <relocation>
                                     <pattern>com.zaxxer.hikari</pattern>
                                     <shadedPattern>com.wormhole_xtreme.shaded.hikari</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.slf4j</pattern>
-                                    <shadedPattern>com.wormhole_xtreme.shaded.slf4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.yaml.snakeyaml</pattern>

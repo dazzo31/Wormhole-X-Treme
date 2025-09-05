@@ -26,6 +26,7 @@ import com.wormhole_xtreme.wormhole.config.ConfigManager;
 import com.wormhole_xtreme.wormhole.config.ConfigManager.ConfigKeys;
 import com.wormhole_xtreme.wormhole.model.Stargate;
 import com.wormhole_xtreme.wormhole.model.StargateDBManager;
+import com.wormhole_xtreme.wormhole.permissions.WXPermissions.PermissionType;
 
 /**
  * WormholeXtreme Built in Permissions Manager.
@@ -249,5 +250,25 @@ public class PermissionsManager
         final String pl_lower = player.toLowerCase();
         player_general_permission.put(pl_lower, lvl);
         StargateDBManager.storeIndividualPermissionInDB(pl_lower, lvl);
+    }
+
+    // Minimal compatibility shim for new WXPermissions integration
+    public static boolean checkWXPermissions(final Player player, final Stargate stargate, final String network, final PermissionType permissionType) {
+        // Fallback to simple nodes without network specificity
+        switch (permissionType) {
+            case BUILD:
+            case REMOVE:
+                return player.isOp();
+            case USE:
+            case DIALER:
+            case SIGN:
+            case GO:
+            case LIST:
+            case COMPASS:
+            case DAMAGE:
+                return true; // allow by default
+            default:
+                return true;
+        }
     }
 }

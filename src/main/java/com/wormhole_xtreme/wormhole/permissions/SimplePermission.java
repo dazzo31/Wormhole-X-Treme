@@ -94,7 +94,10 @@ enum SimplePermission
      */
     protected boolean checkPermission(final Player player)
     {
-        if ((player != null) && !WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.PERMISSIONS_DISABLE) && (WormholeXTreme.getPermissions() != null) && WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.SIMPLE_PERMISSIONS))
+        if ((player != null)
+            && !WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.PERMISSIONS_SUPPORT_DISABLE)
+            && (WormholeXTreme.getPermissions() != null)
+            && WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.SIMPLE_PERMISSIONS))
         {
             if (WormholeXTreme.getPermissions().has(player, simplePermissionNode))
             {

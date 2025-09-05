@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
+import org.bukkit.WorldCreator;
 
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
 import com.wormhole_xtreme.wormhole.config.ConfigManager;
@@ -85,24 +86,18 @@ public class StargateDBManager
         {
             WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "ERROR: failed to load HSQLDB JDBC driver.");
             e.printStackTrace();
+            WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "Failed to intialized internal DB. Stargates will not be saved: " + e.getMessage());
             return;
         }
-
-        try
-        {
-            if ((wormholeSQLConnection == null) || wormholeSQLConnection.isClosed())
-            {
+        try {
+            if ((wormholeSQLConnection == null) || wormholeSQLConnection.isClosed()) {
                 setWormholeSQLConnection(DriverManager.getConnection("jdbc:hsqldb:./plugins/WormholeXTreme/WormholeXTremeDB/WormholeXTremeDB", "sa", ""));
                 wormholeSQLConnection.setAutoCommit(true);
-            }
-            else
-            {
+            } else {
                 WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "WormholeDB already connected.");
             }
-        }
-        catch (final SQLException e)
-        {
-            WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "Failed to intialized internal DB. Stargates will not be saved: " + e.getMessage());
+        } catch (SQLException ex) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "Failed to intialized internal DB. Stargates will not be saved: " + ex.getMessage());
         }
     }
 
@@ -146,7 +141,9 @@ public class StargateDBManager
         {
             try
             {
-                perm.close();
+                if (perm != null) {
+                    perm.close();
+                }
             }
             catch (final SQLException e)
             {
@@ -193,24 +190,12 @@ public class StargateDBManager
                     }
                 }
                 // Is this the best way to retrieve a world?
-                final long worldId = gatesData.getLong("World");
+                // Legacy stored numeric world id (ignored in modern Bukkit API).
                 final String worldName = gatesData.getString("WorldName");
                 final String worldEnvironment = gatesData.getString("WorldEnvironment");
 
                 World w = null;
-                if (worldName.equals(""))
-                {
-                    for (final World possW : worlds)
-                    {
-                        if (possW.getId() == worldId)
-                        {
-                            w = possW;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
+                if (!worldName.equals("")) {
                     w = server.getWorld(worldName);
                 }
 
@@ -218,15 +203,16 @@ public class StargateDBManager
                 {
                     if (ConfigManager.isWormholeWorldsSupportEnabled())
                     {
-                        if ((WormholeXTreme.getWorldHandler() != null) && !WormholeXTreme.getWorldHandler().loadWorld(worldName))
-                        {
-                            server.createWorld(worldName, Environment.valueOf(worldEnvironment));
+                        if ((WormholeXTreme.getWorldHandler() != null) && !WormholeXTreme.getWorldHandler().loadWorld(worldName)) {
+                            WorldCreator wc = WorldCreator.name(worldName).environment(Environment.valueOf(worldEnvironment));
+                            server.createWorld(wc);
                             WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, true, "World: " + worldName + " is not a Wormhole World, the suggested action is to add it as one. Otherwise disregard this warning.");
                         }
                     }
                     else
                     {
-                        server.createWorld(worldName, Environment.valueOf(worldEnvironment));
+                        WorldCreator wc = WorldCreator.name(worldName).environment(Environment.valueOf(worldEnvironment));
+                        server.createWorld(wc);
                     }
                     w = server.getWorld(worldName);
                 }
@@ -263,8 +249,8 @@ public class StargateDBManager
                     WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, true, "Failed to load Stargate '" + sn + "' from DB.");
                 }
             }
-            gatesData.close();
-            stmt.close();
+            if (gatesData != null) { try { gatesData.close(); } catch (SQLException ignored) {} }
+            if (stmt != null) { try { stmt.close(); } catch (SQLException ignored) {} }
 
             final ArrayList<Stargate> gateList = StargateManager.getAllGates();
             for (final Stargate s : gateList)
@@ -309,24 +295,9 @@ public class StargateDBManager
         {
             WormholeXTreme.getThisPlugin().prettyLog(Level.SEVERE, false, "Error loading stargates from DB: " + e.getMessage());
         }
-        finally
-        {
-            try
-            {
-                gatesData.close();
-            }
-            catch (final SQLException e)
-            {
-                WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, e.getMessage());
-            }
-            try
-            {
-                stmt.close();
-            }
-            catch (final SQLException e)
-            {
-                WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, e.getMessage());
-            }
+        finally {
+            if (gatesData != null) { try { gatesData.close(); } catch (SQLException ignore) {} }
+            if (stmt != null) { try { stmt.close(); } catch (SQLException ignore) {} }
         }
     }
 
@@ -438,7 +409,8 @@ public class StargateDBManager
                 {
                     updateGateStatement.setString(2, "");
                 }
-                updateGateStatement.setLong(3, s.getGateWorld().getId());
+                // World numeric ID removed; store ordinal placeholder (0) for backward compatibility.
+                updateGateStatement.setLong(3, 0L);
                 updateGateStatement.setString(4, s.getGateWorld().getName());
                 updateGateStatement.setString(5, s.getGateWorld().getEnvironment().toString());
                 updateGateStatement.setString(6, s.getGateOwner());
@@ -456,7 +428,7 @@ public class StargateDBManager
             }
             else
             {
-                gatesData.close();
+                if (gatesData != null) { try { gatesData.close(); } catch (SQLException ignore) {} }
 
                 if (storeStatement == null)
                 {
@@ -475,7 +447,7 @@ public class StargateDBManager
                     storeStatement.setString(3, "");
                 }
 
-                storeStatement.setLong(4, s.getGateWorld().getId());
+                storeStatement.setLong(4, 0L);
                 storeStatement.setString(5, s.getGateWorld().getName());
                 storeStatement.setString(6, s.getGateWorld().getEnvironment().toString());
                 storeStatement.setString(7, s.getGateOwner());
@@ -498,14 +470,7 @@ public class StargateDBManager
         }
         finally
         {
-            try
-            {
-                gatesData.close();
-            }
-            catch (final SQLException e)
-            {
-                WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, e.getMessage());
-            }
+            if (gatesData != null) { try { gatesData.close(); } catch (SQLException ignore) {} }
         }
     }
 
@@ -575,7 +540,9 @@ public class StargateDBManager
         {
             try
             {
-                perm.close();
+                if (perm != null) {
+                    perm.close();
+                }
             }
             catch (final SQLException e)
             {

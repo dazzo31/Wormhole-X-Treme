@@ -1,3 +1,28 @@
+Wormhole X-Treme 1.0.2 (2025-09-05)
+-----------------------------------
+Database pool & shading fixes.
+
+Fixes / Changes:
+ - Added HSQLDB driver dependency and ensured DataSource class retained.
+ - Disabled shade minimization (minimizeJar=false) to prevent reflective class stripping (JDBC DataSource, SLF4J providers).
+ - Removed relocation of SLF4J to allow provider discovery (simple binding) without NOP warning.
+ - Legacy shape material names mapped (STATIONARY_WATER/LAVA -> WATER/LAVA).
+
+Deploy 1.0.2 if 1.0.1 failed to enable due to HikariCP / JDBCDataSource errors.
+
+Wormhole X-Treme 1.0.1 (2025-09-05)
+-----------------------------------
+Startup stability & packaging cleanup.
+
+Fixes / Changes:
+ - Fixed NullPointerException during onLoad by initializing plugin singleton, logger, and scheduler earlier.
+ - Functionalized legacy static setter stubs (setThisPlugin, setLog, setScheduler, setPrettyLogLevel).
+ - Added defensive try/catch blocks around config, DB update, shape and permissions preload steps.
+ - Clarified shading strategy; main artifact remains standard jar (no classifier) with relocated embedded libs.
+
+Notes:
+If you previously deployed 1.0.0 and saw an immediate startup NPE, replace the jar with 1.0.1. No config or data changes required.
+
 Wormhole X-Treme 1.0.0 (2025-09-05)
 -----------------------------------
 Modernization release targeting Spigot 1.20.4.

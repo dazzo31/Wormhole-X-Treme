@@ -19,13 +19,12 @@
 package com.wormhole_xtreme.wormhole.plugin;
 
 import java.util.logging.Level;
+import java.lang.reflect.InvocationTargetException;
 
 import org.bukkit.plugin.Plugin;
 
-import com.wormhole_xtreme.worlds.WormholeXTremeWorlds;
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
 import com.wormhole_xtreme.wormhole.config.WormholeConfig;
-import com.wormhole_xtreme.wormhole.model.StargateDBManager;
 
 /**
  * The Class WormholeWorldsSupport.
@@ -69,7 +68,7 @@ public class WormholeWorldsSupport
      */
     public static void enableWormholeWorlds()
     {
-        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.WORLD_SUPPORT_ENABLED))
+    if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.WORLDS_SUPPORT_ENABLED))
         {
             if (WormholeXTreme.getWorldHandler() == null)
             {
@@ -79,20 +78,17 @@ public class WormholeWorldsSupport
                     final String version = worldsTest.getDescription().getVersion();
                     if (checkWorldsVersion(version))
                     {
-                        try
-                        {
-                            WormholeXTreme.setWorldHandler(WormholeXTremeWorlds.getWorldHandler());
+                        try {
+                            // Use reflection to avoid hard dependency
+                            Object handler = worldsTest.getClass().getMethod("getWorldHandler").invoke(null);
+                            WormholeXTreme.setWorldHandler((com.wormhole_xtreme.wormhole.WorldHandler) handler);
                             WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Attached to Wormhole Worlds version " + version);
                             // Worlds support means we can continue our load.
-                            StargateDBManager.loadStargates(WormholeXTreme.getThisPlugin().getServer());
                             WormholeXTreme.registerEvents(false);
-                            WormholeXTreme.registerCommands();
+                            WormholeXTreme.runRegisterCommands();
                             WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, true, "Enable Completed.");
-
-                        }
-                        catch (final ClassCastException e)
-                        {
-                            WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Failed to get cast to Wormhole Worlds: " + e.getMessage());
+                        } catch (ClassCastException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                            WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Failed to attach to Wormhole Worlds: " + e.getMessage());
                         }
                     }
                 }

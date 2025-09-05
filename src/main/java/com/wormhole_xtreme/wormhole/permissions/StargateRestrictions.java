@@ -166,7 +166,7 @@ public class StargateRestrictions
      */
     public static boolean isPlayerBuildRestricted(final Player player)
     {
-        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.USE_BUILD_RESTRICTION))
+    if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILD_RESTRICTION_ENABLED))
         {
             RestrictionGroup restrictionGroup = null;
             if (WXPermissions.checkWXPermissions(player, PermissionType.BUILD_RESTRICTION_GROUP_ONE))

@@ -31,6 +31,11 @@ import com.wormhole_xtreme.wormhole.permissions.PermissionsManager;
  */
 public class StargateNetwork
 {
+    public StargateNetwork() {}
+
+    public StargateNetwork(String networkName) {
+        this.networkName = networkName;
+    }
 
     /** The net name. */
     private String networkName;

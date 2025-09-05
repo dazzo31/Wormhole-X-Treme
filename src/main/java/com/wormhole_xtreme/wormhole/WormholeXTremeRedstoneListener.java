@@ -21,7 +21,8 @@ package com.wormhole_xtreme.wormhole;
 import java.util.logging.Level;
 
 import org.bukkit.block.Block;
-import org.bukkit.event.block.BlockListener;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockRedstoneEvent;
 
 import com.wormhole_xtreme.wormhole.model.Stargate;
@@ -38,7 +39,7 @@ import com.wormhole_xtreme.wormhole.model.StargateManager;
  * 
  * @see WormholeXTremeRedstoneEvent
  */
-class WormholeXTremeRedstoneListener extends BlockListener
+class WormholeXTremeRedstoneListener implements Listener
 {
     /**
      * Checks if current is new.
@@ -77,15 +78,15 @@ class WormholeXTremeRedstoneListener extends BlockListener
     /* (non-Javadoc)
      * @see org.bukkit.event.block.BlockListener#onBlockRedstoneChange(org.bukkit.event.block.BlockRedstoneEvent)
      */
-    @Override
-    public void onBlockRedstoneChange(final BlockRedstoneEvent event)
+    @EventHandler
+    public void handleBlockRedstoneChange(final BlockRedstoneEvent event)
     {
         final Block block = event.getBlock();
         WormholeXTreme.getThisPlugin().prettyLog(Level.FINEST, false, "Caught redstone event on block: " + block.toString() + " oldCurrent: " + event.getOldCurrent() + " newCurrent: " + event.getNewCurrent());
         if (StargateManager.isBlockInGate(block))
         {
             final Stargate stargate = StargateManager.getGateFromBlock(event.getBlock());
-            if (stargate.isGateSignPowered() && stargate.isGateRedstonePowered() && (block.getTypeId() == 55) && isCurrentNew(event.getOldCurrent(), event.getNewCurrent()))
+            if (stargate.isGateSignPowered() && stargate.isGateRedstonePowered() && (block.getType() == org.bukkit.Material.REDSTONE_WIRE) && isCurrentNew(event.getOldCurrent(), event.getNewCurrent()))
             {
                 if ((stargate.getGateRedstoneSignActivationBlock() != null) && block.equals(stargate.getGateRedstoneSignActivationBlock()) && isCurrentOn(event.getOldCurrent(), event.getNewCurrent()))
                 {

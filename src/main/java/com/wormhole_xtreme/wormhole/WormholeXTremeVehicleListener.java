@@ -26,8 +26,10 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
+import org.bukkit.Material;
 import org.bukkit.event.Event;
-import org.bukkit.event.vehicle.VehicleListener;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.util.Vector;
 
@@ -45,7 +47,7 @@ import com.wormhole_xtreme.wormhole.permissions.WXPermissions.PermissionType;
  * @author Ben Echols (Lologarithm)
  * @author Dean Bailey (alron)
  */
-class WormholeXTremeVehicleListener extends VehicleListener
+class WormholeXTremeVehicleListener implements Listener
 {
 
     /** The nospeed. */
@@ -63,11 +65,11 @@ class WormholeXTremeVehicleListener extends VehicleListener
         final Location l = event.getTo();
         final Block ch = l.getWorld().getBlockAt(l.getBlockX(), l.getBlockY(), l.getBlockZ());
         final Stargate st = StargateManager.getGateFromBlock(ch);
-        if ((st != null) && st.isGateActive() && (st.getGateTarget() != null) && (ch.getTypeId() == (st.isGateCustom()
-            ? st.getGateCustomPortalMaterial().getId()
-            : st.getGateShape() != null
-                ? st.getGateShape().getShapePortalMaterial().getId()
-                : 9)))
+            if ((st != null) && st.isGateActive() && (st.getGateTarget() != null) && (ch.getType() == (st.isGateCustom()
+                ? st.getGateCustomPortalMaterial()
+                : st.getGateShape() != null
+                    ? st.getGateShape().getShapePortalMaterial()
+                    : Material.WATER)))
         {
             String gatenetwork;
             if (st.getGateNetwork() != null)
@@ -84,19 +86,19 @@ class WormholeXTremeVehicleListener extends VehicleListener
             final Minecart veh = (Minecart) event.getVehicle();
             final Vector v = veh.getVelocity();
             veh.setVelocity(nospeed);
-            final Entity e = veh.getPassenger();
+            final Entity e = veh.getPassengers().isEmpty() ? null : veh.getPassengers().get(0);
             if ((e != null) && (e instanceof Player))
             {
                 final Player p = (Player) e;
                 WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, "Minecart Player in gate:" + st.getGateName() + " gate Active: " + st.isGateActive() + " Target Gate: " + st.getGateTarget().getGateName() + " Network: " + gatenetwork);
                 if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.WORMHOLE_USE_IS_TELEPORT) && ((st.isGateSignPowered() && !WXPermissions.checkWXPermissions(p, st, PermissionType.SIGN)) || ( !st.isGateSignPowered() && !WXPermissions.checkWXPermissions(p, st, PermissionType.DIALER))))
-                {
-                    p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_PERMISSION_DENIED));
-                    return false;
-                }
+                    {
+                        p.sendMessage("You do not have permission to use this gate.");
+                        return false;
+                    }
                 if (st.getGateTarget().isGateIrisActive())
                 {
-                    p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_ERROR_HEADER) + "Remote Iris is locked!");
+                    p.sendMessage("Error: Remote Iris is locked!");
                     veh.teleport(st.getGateMinecartTeleportLocation() != null
                         ? st.getGateMinecartTeleportLocation()
                         : st.getGatePlayerTeleportLocation());
@@ -110,8 +112,8 @@ class WormholeXTremeVehicleListener extends VehicleListener
                 {
                     if (StargateRestrictions.isPlayerUseCooldown(p))
                     {
-                        p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_COOLDOWN_RESTRICTED));
-                        p.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_COOLDOWN_WAIT) + StargateRestrictions.checkPlayerUseCooldownRemaining(p));
+                        p.sendMessage("Cooldown restricted.");
+                        p.sendMessage("Please wait: " + StargateRestrictions.checkPlayerUseCooldownRemaining(p));
                         return false;
                     }
                     else
@@ -172,7 +174,7 @@ class WormholeXTremeVehicleListener extends VehicleListener
                     WormholeXTreme.getThisPlugin().prettyLog(Level.FINE, false, "Removing player from cart and doing some teleport hackery");
                     veh.eject();
                     veh.remove();
-                    final Minecart newveh = target.getWorld().spawnMinecart(target);
+                    final Minecart newveh = target.getWorld().spawn(target, Minecart.class);
                     final Event teleportevent = new StargateMinecartTeleportEvent(veh, newveh);
                     WormholeXTreme.getThisPlugin().getServer().getPluginManager().callEvent(teleportevent);
                     e.teleport(target);
@@ -182,7 +184,7 @@ class WormholeXTremeVehicleListener extends VehicleListener
                         @Override
                         public void run()
                         {
-                            newveh.setPassenger(e);
+                            newveh.addPassenger(e);
                             newveh.setVelocity(newnew_speed);
                             newveh.setFireTicks(0);
                         }
@@ -208,8 +210,8 @@ class WormholeXTremeVehicleListener extends VehicleListener
     /* (non-Javadoc)
      * @see org.bukkit.event.vehicle.VehicleListener#onVehicleMove(org.bukkit.event.vehicle.VehicleMoveEvent)
      */
-    @Override
-    public void onVehicleMove(final VehicleMoveEvent event)
+    @EventHandler
+    public void handleVehicleMove(final VehicleMoveEvent event)
     {
         if (event.getVehicle() instanceof Minecart)
         {

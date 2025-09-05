@@ -54,6 +54,7 @@ import com.wormhole_xtreme.wormhole.utils.WorldUtils;
 /**
  * The Class StargateHelper.
  */
+@SuppressWarnings({"deprecation"})
 public class StargateHelper
 {
 
@@ -136,8 +137,8 @@ public class StargateHelper
      */
     private static Stargate checkStargate(final Block buttonBlock, final BlockFace facing, final StargateShape shape, final boolean create)
     {
-        final BlockFace opposite = WorldUtils.getInverseDirection(facing);
-        final Block holdingBlock = buttonBlock.getFace(opposite);
+    final BlockFace opposite = WorldUtils.getInverseDirection(facing);
+    final Block holdingBlock = buttonBlock.getRelative(opposite);
 
         if (isStargateMaterial(holdingBlock, shape))
         {
@@ -268,7 +269,7 @@ public class StargateHelper
             // First go forward one
             Block bLoc = teleBlock.getRelative(facing);
             // Now go up until we hit air or water.
-            while ((bLoc.getTypeId() != 0) && (bLoc.getTypeId() != 8))
+            while (bLoc.getType() != Material.AIR && bLoc.getType() != Material.WATER)
             {
                 bLoc = bLoc.getRelative(BlockFace.UP);
             }
@@ -289,7 +290,7 @@ public class StargateHelper
                     bVect[2] * directionVector[2] * -1};
 
                 final Block maybeBlock = w.getBlockAt(blockLocation[0] + startingPosition[0], blockLocation[1] + startingPosition[1], blockLocation[2] + startingPosition[2]);
-                if (maybeBlock.getTypeId() == 0)
+                if (maybeBlock.getType() == Material.AIR)
                 {
                     tempGate.getGatePortalBlocks().add(maybeBlock.getLocation());
                 }
@@ -314,7 +315,7 @@ public class StargateHelper
     /**
      * Check stargate3 d.
      * 
-     * @param buttonBlock
+            final Block signBlock = holdingBlock.getRelative(tempGate.getGateFacing());
      *            the button block
      * @param facing
      *            the facing
@@ -335,11 +336,10 @@ public class StargateHelper
         s.setGateFacing(facing);
 
         final BlockFace opposite = WorldUtils.getInverseDirection(facing);
-        final Block activationBlock = buttonBlock.getFace(opposite);
+            final Block activationBlock = buttonBlock.getRelative(opposite);
         final StargateShapeLayer act_layer = shape.getShapeLayers().get(shape.getShapeActivationLayer());
 
-        final int[] facingVector = {0, 0, 0};
-
+    final int[] facingVector = {0, 0, 0};
         // Now we start calculaing the values for the blocks that need to be the stargate material.
 
         if (facing == BlockFace.NORTH)
@@ -375,7 +375,7 @@ public class StargateHelper
         directionVector[1] = facingVector[2] * shape.getShapeReferenceVector()[0] - facingVector[0] * shape.getShapeReferenceVector()[2];
         directionVector[2] = facingVector[0] * shape.getShapeReferenceVector()[1] - facingVector[1] * shape.getShapeReferenceVector()[0];
 
-        // This is the 0,0,0 the block at the ground on the activation layer
+    // This is the 0,0,0 the block at the ground on the activation layer
         startingPosition[0] = activationBlock.getX() - directionVector[0] * act_layer.getLayerActivationPosition()[2];
         startingPosition[1] = activationBlock.getY() - act_layer.getLayerActivationPosition()[1];
         startingPosition[2] = activationBlock.getZ() - directionVector[2] * act_layer.getLayerActivationPosition()[2];
@@ -461,13 +461,12 @@ public class StargateHelper
         for (int i = 0; i < layer.getLayerPortalPositions().size(); i++)
         {
             final Block maybeBlock = getBlockFromVector(layer.getLayerPortalPositions().get(i), directionVector, lowerCorner, w);
-
             if (create)
             {
                 maybeBlock.setType(Material.AIR);
             }
 
-            if (maybeBlock.getTypeId() == 0)
+            if (maybeBlock.getType() == Material.AIR)
             {
                 tempGate.getGatePortalBlocks().add(maybeBlock.getLocation());
             }
@@ -485,7 +484,7 @@ public class StargateHelper
             // First go forward one
             // Block bLoc = teleBlock.getRelative(tempGate.getGateFacing());
             // Now go up until we hit air or water.
-            while ((teleBlock.getTypeId() != 0) && (teleBlock.getTypeId() != 8))
+            while (teleBlock.getType() != Material.AIR && teleBlock.getType() != Material.WATER)
             {
                 teleBlock = teleBlock.getRelative(BlockFace.UP);
             }
@@ -509,7 +508,7 @@ public class StargateHelper
             // First go forward one
             //Block bLoc = teleBlock.getRelative(tempGate.getGateFacing());
             // Now go up until we hit air or water.
-            while ((teleBlock.getTypeId() != 0) && (teleBlock.getTypeId() != 8))
+            while (teleBlock.getType() != Material.AIR && teleBlock.getType() != Material.WATER)
             {
                 teleBlock = teleBlock.getRelative(BlockFace.UP);
             }
@@ -561,7 +560,7 @@ public class StargateHelper
         if (layer.getLayerDialSignPosition().length > 0)
         {
             final Block signBlockHolder = StargateHelper.getBlockFromVector(layer.getLayerDialSignPosition(), directionVector, lowerCorner, w);
-            final Block signBlock = signBlockHolder.getFace(tempGate.getGateFacing());
+            final Block signBlock = signBlockHolder.getRelative(tempGate.getGateFacing());
 
             // If somethign went wrong but the gate is sign powered, we need to error out.
             if ( !tryCreateGateSign(signBlock, tempGate) && tempGate.isGateSignPowered())
@@ -597,7 +596,7 @@ public class StargateHelper
 
         if (layer.getLayerIrisActivationPosition().length > 0)
         {
-            tempGate.setGateIrisLeverBlock(StargateHelper.getBlockFromVector(layer.getLayerIrisActivationPosition(), directionVector, lowerCorner, w).getFace(tempGate.getGateFacing()));
+            tempGate.setGateIrisLeverBlock(StargateHelper.getBlockFromVector(layer.getLayerIrisActivationPosition(), directionVector, lowerCorner, w).getRelative(tempGate.getGateFacing()));
             tempGate.getGateStructureBlocks().add(tempGate.getGateIrisLeverBlock().getLocation());
         }
 
@@ -684,7 +683,7 @@ public class StargateHelper
      */
     private static boolean isStargateMaterial(final Block b, final StargateShape s)
     {
-        return b.getTypeId() == s.getShapeStructureMaterial().getId();
+        return b.getType() == s.getShapeStructureMaterial();
     }
 
     public static boolean isStargateShape(final String name)
@@ -1491,22 +1490,14 @@ public class StargateHelper
             s.setGateRedstonePowered(DataUtils.byteToBoolean(byteBuff.get()));
 
             s.setGateCustom(DataUtils.byteToBoolean(byteBuff.get()));
-            final int gateCustomStructureMaterial = byteBuff.getInt();
-            s.setGateCustomStructureMaterial(gateCustomStructureMaterial != -1
-                ? Material.getMaterial(gateCustomStructureMaterial)
-                : null);
-            final int gateCustomPortalMaterial = byteBuff.getInt();
-            s.setGateCustomPortalMaterial(gateCustomPortalMaterial != -1
-                ? Material.getMaterial(gateCustomPortalMaterial)
-                : null);
-            final int gateCustomLightMaterial = byteBuff.getInt();
-            s.setGateCustomLightMaterial(gateCustomLightMaterial != -1
-                ? Material.getMaterial(gateCustomLightMaterial)
-                : null);
-            final int gateCustomIrisMaterial = byteBuff.getInt();
-            s.setGateCustomIrisMaterial(gateCustomIrisMaterial != -1
-                ? Material.getMaterial(gateCustomIrisMaterial)
-                : null);
+            byteBuff.getInt();
+            s.setGateCustomStructureMaterial(null);
+            byteBuff.getInt();
+            s.setGateCustomPortalMaterial(null);
+            byteBuff.getInt();
+            s.setGateCustomLightMaterial(null);
+            byteBuff.getInt();
+            s.setGateCustomIrisMaterial(null);
             s.setGateCustomWooshTicks(byteBuff.getInt());
             s.setGateCustomLightTicks(byteBuff.getInt());
             s.setGateCustomWooshDepth(byteBuff.getInt());
@@ -1828,25 +1819,17 @@ public class StargateHelper
             ? (byte) 1
             : (byte) 0);
 
-        /** gateCustomStructureMaterial - int 4 */
-        dataArr.putInt(s.getGateCustomStructureMaterial() != null
-            ? s.getGateCustomStructureMaterial().getId()
-            : -1);
+    /** gateCustomStructureMaterial - int 4 */
+    dataArr.putInt(-1);
 
-        /** gateCustomPortalMaterial - int 5 */
-        dataArr.putInt(s.getGateCustomPortalMaterial() != null
-            ? s.getGateCustomPortalMaterial().getId()
-            : -1);
+    /** gateCustomPortalMaterial - int 5 */
+    dataArr.putInt(-1);
 
-        /** gateCustomLightMaterial - int 6 */
-        dataArr.putInt(s.getGateCustomLightMaterial() != null
-            ? s.getGateCustomLightMaterial().getId()
-            : -1);
+    /** gateCustomLightMaterial - int 6 */
+    dataArr.putInt(-1);
 
-        /** gateCustomIrisMaterial - int 7 */
-        dataArr.putInt(s.getGateCustomIrisMaterial() != null
-            ? s.getGateCustomIrisMaterial().getId()
-            : -1);
+    /** gateCustomIrisMaterial - int 7 */
+    dataArr.putInt(-1);
 
         /** gateCustomWooshTicks - int 8 */
         dataArr.putInt(s.getGateCustomWooshTicks());
@@ -1926,7 +1909,7 @@ public class StargateHelper
     private static boolean tryCreateGateSign(final Block signBlock, final Stargate tempGate)
     {
 
-        if (signBlock.getTypeId() == 68)
+    if (signBlock.getType() == Material.OAK_WALL_SIGN)
         {
             tempGate.setGateSignPowered(true);
             tempGate.setGateDialSignBlock(signBlock);

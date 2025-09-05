@@ -28,7 +28,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.EntityListener;
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventHandler;
 
 import com.wormhole_xtreme.wormhole.model.Stargate;
 import com.wormhole_xtreme.wormhole.model.StargateManager;
@@ -39,7 +40,7 @@ import com.wormhole_xtreme.wormhole.model.StargateManager;
  * @author Ben Echols (Lologarithm)
  * @author Dean Bailey (alron)
  */
-class WormholeXTremeEntityListener extends EntityListener
+class WormholeXTremeEntityListener implements Listener
 {
 
     /**
@@ -80,11 +81,11 @@ class WormholeXTremeEntityListener extends EntityListener
             ? closest.getGateCustomPortalMaterial()
             : closest.getGateShape() != null
                 ? closest.getGateShape().getShapePortalMaterial()
-                : Material.STATIONARY_WATER) == Material.STATIONARY_LAVA) || ((closest.getGateTarget() != null) && ((closest.getGateTarget().isGateCustom()
+                : Material.WATER) == Material.LAVA) || ((closest.getGateTarget() != null) && ((closest.getGateTarget().isGateCustom()
             ? closest.getGateTarget().getGateCustomPortalMaterial()
             : closest.getGateTarget().getGateShape() != null
                 ? closest.getGateTarget().getGateShape().getShapePortalMaterial()
-                : Material.STATIONARY_WATER) == Material.STATIONARY_LAVA))))
+                : Material.WATER) == Material.LAVA))))
         {
             final double blockDistanceSquared = StargateManager.distanceSquaredToClosestGateBlock(current, closest);
             if ((closest.isGateActive() || closest.isGateRecentlyActive()) && (((blockDistanceSquared <= (closest.isGateCustom()
@@ -108,8 +109,8 @@ class WormholeXTremeEntityListener extends EntityListener
     /* (non-Javadoc)
      * @see org.bukkit.event.entity.EntityListener#onEntityDamage(org.bukkit.event.entity.EntityDamageEvent)
      */
-    @Override
-    public void onEntityDamage(final EntityDamageEvent event)
+    @EventHandler
+    public void handleEntityDamage(final EntityDamageEvent event)
     {
         if ( !event.isCancelled() && (event.getCause().equals(DamageCause.FIRE) || event.getCause().equals(DamageCause.FIRE_TICK) || event.getCause().equals(DamageCause.LAVA)))
         {
@@ -126,8 +127,8 @@ class WormholeXTremeEntityListener extends EntityListener
     /* (non-Javadoc)
      * @see org.bukkit.event.entity.EntityListener#onEntityExplode(org.bukkit.event.entity.EntityExplodeEvent)
      */
-    @Override
-    public void onEntityExplode(final EntityExplodeEvent event)
+    @EventHandler
+    public void handleEntityExplode(final EntityExplodeEvent event)
     {
         if ( !event.isCancelled())
         {

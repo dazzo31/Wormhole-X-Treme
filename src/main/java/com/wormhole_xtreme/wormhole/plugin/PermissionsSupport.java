@@ -20,9 +20,6 @@ package com.wormhole_xtreme.wormhole.plugin;
 
 import java.util.logging.Level;
 
-import org.bukkit.plugin.Plugin;
-
-import com.nijikokun.bukkit.Permissions.Permissions;
 import com.wormhole_xtreme.wormhole.WormholeXTreme;
 import com.wormhole_xtreme.wormhole.config.WormholeConfig;
 
@@ -31,8 +28,7 @@ import com.wormhole_xtreme.wormhole.config.WormholeConfig;
  * 
  * @author alron
  */
-public class PermissionsSupport
-{
+public class PermissionsSupport {
 
     /**
      * Check permissions version.
@@ -40,69 +36,18 @@ public class PermissionsSupport
      * @param version
      *            the version
      */
-    private static void checkPermissionsVersion(final String version)
-    {
-        final String v = version;
-        if ( !v.startsWith("2.5") && !v.startsWith("2.6") && !v.startsWith("2.7") && !v.startsWith("3.0"))
-        {
-            WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Not a supported version of Permissions. Recommended is 3.0.x");
-        }
-
-    }
 
     /**
      * Disable permissions.
      */
-    public static void disablePermissions()
-    {
-        if (WormholeXTreme.getPermissions() != null)
-        {
-            WormholeXTreme.setPermissions(null);
-            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Detached from Permissions plugin.");
-        }
-    }
+    public static void disablePermissions() { /* no-op */ }
 
     /**
      * Setup permissions.
      */
-    public static void enablePermissions()
-    {
-        if (!WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.PERMISSIONS_DISABLE))
-        {
-            if (WormholeXTreme.getPermissions() == null)
-            {
-                final Plugin test = WormholeXTreme.getThisPlugin().getServer().getPluginManager().getPlugin("Permissions");
-                if (test != null)
-                {
-                    final String v = test.getDescription().getVersion();
-                    checkPermissionsVersion(v);
-                    try
-                    {
-                        WormholeXTreme.setPermissions(((Permissions) test).getHandler());
-                        WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Attached to Permissions version " + v);
-                        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.SIMPLE_PERMISSIONS))
-                        {
-                            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Simple Permissions Enabled");
-                        }
-                        else
-                        {
-                            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Complex Permissions Enabled");
-                        }
-                    }
-                    catch (final ClassCastException e)
-                    {
-                        WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Failed to get Permissions Handler. Defaulting to built-in permissions.");
-                    }
-                }
-                else
-                {
-                    WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Permission Plugin not yet available. Defaulting to built-in permissions until Permissions is loaded.");
-                }
-            }
-        }
-        else
-        {
-            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "Permission Plugin support disabled via settings.txt.");
+    public static void enablePermissions() {
+        if (!WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.PERMISSIONS_SUPPORT_DISABLE)) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.INFO, false, "External Permissions integration is not available; using Vault if present.");
         }
     }
 }

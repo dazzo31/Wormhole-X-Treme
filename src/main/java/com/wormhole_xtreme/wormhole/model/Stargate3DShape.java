@@ -163,19 +163,19 @@ public class Stargate3DShape extends StargateShape
             }
             else if (line.contains("PORTAL_MATERIAL=") && (line.split("=").length > 1))
             {
-                setShapePortalMaterial(Material.valueOf(line.split("=")[1]));
+                setShapePortalMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("IRIS_MATERIAL=") && (line.split("=").length > 1))
             {
-                setShapeIrisMaterial(Material.valueOf(line.split("=")[1]));
+                setShapeIrisMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("STARGATE_MATERIAL=") && (line.split("=").length > 1))
             {
-                setShapeStructureMaterial(Material.valueOf(line.split("=")[1]));
+                setShapeStructureMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("ACTIVE_MATERIAL=") && (line.split("=").length > 1))
             {
-                setShapeLightMaterial(Material.valueOf(line.split("=")[1]));
+                setShapeLightMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("LIGHT_TICKS=") && (line.split("=").length > 1))
             {
@@ -213,6 +213,19 @@ public class Stargate3DShape extends StargateShape
     public int getShapeActivationLayer()
     {
         return shapeActivationLayer;
+    }
+
+    // Helper to map legacy material names removed from modern Spigot
+    private Material resolveMaterial(String name) {
+        String upper = name.trim().toUpperCase();
+        if (upper.equals("STATIONARY_WATER")) upper = "WATER";
+        if (upper.equals("STATIONARY_LAVA")) upper = "LAVA";
+        try {
+            return Material.valueOf(upper);
+        } catch (IllegalArgumentException ex) {
+            WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false, "Unknown material '" + name + "' in shape '" + getShapeName() + "', defaulting to WATER");
+            return Material.WATER;
+        }
     }
 
     /**

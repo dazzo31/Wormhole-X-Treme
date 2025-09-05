@@ -129,7 +129,7 @@ public class WXPermissions
         }
         
         // Fall back to built-in permissions if Vault is not available
-        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILTIN_PERMISSIONS_ENABLED)) {
+        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILT_IN_PERMISSIONS_ENABLED)) {
             return PermissionsManager.checkWXPermissions(player, stargate, network, permissionType);
         }
         
@@ -258,7 +258,7 @@ public class WXPermissions
         }
         
         // Fall back to built-in permissions if Vault is not available
-        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILTIN_PERMISSIONS_ENABLED)) {
+        if (WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.BUILT_IN_PERMISSIONS_ENABLED)) {
             return PermissionsManager.getPermissionLevel(player, null);
         }
         

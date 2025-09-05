@@ -18,7 +18,6 @@
  */
 package com.wormhole_xtreme.wormhole;
 
-import java.util.Objects;
 import java.util.logging.Level;
 
 import org.bukkit.Location;
@@ -34,10 +33,9 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.wormhole_xtreme.wormhole.model.Stargate;
-import com.wormhole_xtreme.wormhole.config.WormholeConfig;
+import com.wormhole_xtreme.wormhole.model.StargateManager;
 import com.wormhole_xtreme.wormhole.permissions.WXPermissions;
 import com.wormhole_xtreme.wormhole.permissions.WXPermissions.PermissionType;
 import com.wormhole_xtreme.wormhole.utils.WorldUtils;
@@ -60,17 +58,6 @@ import com.wormhole_xtreme.wormhole.utils.WorldUtils;
  * @author Dean Bailey (alron)
  */
 public class WormholeXTremeBlockListener implements Listener {
-    
-    private final JavaPlugin plugin;
-    
-    /**
-     * Instantiates a new wormhole xtreme block listener.
-     *
-     * @param plugin the plugin
-     */
-    public WormholeXTremeBlockListener(JavaPlugin plugin) {
-        this.plugin = Objects.requireNonNull(plugin, "Plugin cannot be null");
-    }
     /**
      * Handle block break.
      * 
@@ -84,7 +71,7 @@ public class WormholeXTremeBlockListener implements Listener {
 
         final boolean hasPermission = WXPermissions.checkWXPermissions(player, stargate, PermissionType.DAMAGE);
         if (!hasPermission) {
-            player.sendMessage(WormholeXTreme.getThisPlugin().getWormholeConfig().get(WormholeConfig.MESSAGE_PERMISSION_DENIED));
+            player.sendMessage("You don't have permission to modify this stargate.");
             return true;
         }
 
@@ -113,7 +100,7 @@ public class WormholeXTremeBlockListener implements Listener {
         // Handle stargate blocks
         if (stargate.isGateActive()) {
             stargate.setGateActive(false);
-            stargate.fillGateInterior(0);
+            stargate.fillGateInterior(Material.AIR);
         }
         
         if (stargate.isGateLightsActive()) {
@@ -178,7 +165,7 @@ public class WormholeXTremeBlockListener implements Listener {
                 ? closest.getGateShape().getShapePortalMaterial() 
                 : null);
                 
-        if (portalMaterial != Material.LAVA && portalMaterial != Material.STATIONARY_LAVA) {
+    if (portalMaterial != Material.LAVA) {
             return;
         }
         
@@ -261,7 +248,7 @@ public class WormholeXTremeBlockListener implements Listener {
                 ? closest.getGateShape().getShapePortalMaterial() 
                 : null);
                 
-        if (portalMaterial != Material.LAVA && portalMaterial != Material.STATIONARY_LAVA) {
+    if (portalMaterial != Material.LAVA) {
             return;
         }
         
