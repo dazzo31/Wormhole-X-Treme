@@ -222,19 +222,19 @@ public class StargateShape
             }
             else if (line.contains("PORTAL_MATERIAL"))
             {
-                setShapePortalMaterial(Material.valueOf(line.split("=")[1]));
+                setShapePortalMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("IRIS_MATERIAL"))
             {
-                setShapeIrisMaterial(Material.valueOf(line.split("=")[1]));
+                setShapeIrisMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("STARGATE_MATERIAL"))
             {
-                setShapeStructureMaterial(Material.valueOf(line.split("=")[1]));
+                setShapeStructureMaterial(resolveMaterial(line.split("=")[1]));
             }
             else if (line.contains("ACTIVE_MATERIAL"))
             {
-                setShapeLightMaterial(Material.valueOf(line.split("=")[1]));
+                setShapeLightMaterial(resolveMaterial(line.split("=")[1]));
             }
         }
         //TODO: debug printout for the materials the gate uses.
@@ -280,6 +280,42 @@ public class StargateShape
 
         setShapeWooshDepth(curWooshDepth);
         setShapeWooshDepthSquared(curWooshDepth * curWooshDepth);
+    }
+
+    /**
+     * Resolves legacy or deprecated material names to modern Spigot/Bukkit Material enums.
+     * Provides fallbacks and logs a warning if a name is unknown.
+     * Supported legacy mappings:
+     *  STATIONARY_WATER -> WATER
+     *  STATIONARY_LAVA  -> LAVA
+     *  PORTAL           -> NETHER_PORTAL
+     *  GLOWING_REDSTONE_ORE -> GLOWSTONE (visual lighting replacement)
+     */
+    private Material resolveMaterial(String raw) {
+        if (raw == null) {
+            return Material.WATER; // safe default
+        }
+        String name = raw.trim().toUpperCase();
+        switch (name) {
+            case "STATIONARY_WATER":
+                return Material.WATER;
+            case "STATIONARY_LAVA":
+                return Material.LAVA;
+            case "PORTAL":
+                // Old suggestion in shape files; modern enum is NETHER_PORTAL
+                return Material.NETHER_PORTAL;
+            case "GLOWING_REDSTONE_ORE":
+                // Removed in modern versions; choose bright block
+                return Material.GLOWSTONE;
+            default:
+                try {
+                    return Material.valueOf(name);
+                } catch (IllegalArgumentException ex) {
+                    WormholeXTreme.getThisPlugin().prettyLog(Level.WARNING, false,
+                        "Unknown shape material '" + raw + "' in shape '" + shapeName + "' - defaulting to WATER");
+                    return Material.WATER;
+                }
+        }
     }
 
     /**
