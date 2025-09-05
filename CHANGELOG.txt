@@ -1,14 +1,49 @@
 Wormhole X-Treme 1.0.2 (2025-09-05)
------------------------------------
-Database pool & shading fixes.
+------------------------------------
+Stability & completion pass for the modernization effort. Focus on database pooling reliability, listener/event API migration, legacy material & world handling, and permissions/config clean up.
 
-Fixes / Changes:
- - Added HSQLDB driver dependency and ensured DataSource class retained.
- - Disabled shade minimization (minimizeJar=false) to prevent reflective class stripping (JDBC DataSource, SLF4J providers).
- - Removed relocation of SLF4J to allow provider discovery (simple binding) without NOP warning.
- - Legacy shape material names mapped (STATIONARY_WATER/LAVA -> WATER/LAVA).
+Highlights:
+ - Fixed database pool startup (HikariCP + embedded HSQLDB) by adding explicit driver dependency and disabling shade minimization so reflective classes (DataSource, SLF4J providers) are preserved.
+ - Removed SLF4J relocation; simple logger binding now discovered without fallback NOP warning.
+ - Converted remaining legacy Bukkit listener subclasses (BlockListener, ServerListener, VehicleListener) to modern Bukkit `Listener` + `@EventHandler` annotations.
+ - Replaced deprecated numeric block ID methods (`getTypeId()`, `setTypeId*`) with Material / BlockData usage across gate activation, sign, lever, redstone, and portal fill logic.
+ - Added backward-compatible material resolution for legacy shape files (maps STATIONARY_WATER/LAVA -> WATER/LAVA) preventing shape parse failures.
+ - Normalized portal, iris, structure & light material defaults to modern enum constants (e.g. WATER instead of STATIONARY_WATER, NETHER_PORTAL instead of PORTAL when custom-set).
+ - Simplified / updated command validation messages for customized materials (removed references to removed materials like GLOWING_REDSTONE_ORE, STATIONARY_*).
+ - Hardened `StargateHelper` & `Stargate` serialization/deserialization: removed obsolete custom material ID persistence (writes -1 placeholders) and legacy world numeric ID usage.
+ - Added lightweight internal stubs: `WorldHandler` & `ConfigMigrationUtil` to decouple from absent companion plugins and enable future migration logic.
+ - Permissions refactor: introduced `PermissionUtils` convenience methods, added minimal compatibility shim in `PermissionsManager` for modern WXPermissions integration; aligned config property names (BUILT_IN_PERMISSIONS_, PERMISSIONS_SUPPORT_DISABLE, SIMPLE_PERMISSIONS, etc.).
+ - Removed hard dependencies / reflection on outdated Help & Permissions plugins; replaced with graceful no-op integration classes (`HelpSupport`, `PermissionsSupport`).
+ - Added defensive null / optional handling in DB manager and world loading; uses `WorldCreator` when worlds must be created.
+ - Internal gate network & manager cleanups (direct value-based retrieval, safer removals, simplified collection returns).
+ - Added suppression annotations only where still relying on deprecated APIs temporarily (e.g., sign line setting).
 
-Deploy 1.0.2 if 1.0.1 failed to enable due to HikariCP / JDBCDataSource errors.
+Bug Fixes:
+ - Resolved HikariCP failure to acquire driver class (ClassNotFound for `org.hsqldb.jdbc.JDBCDataSource`).
+ - Prevented reflective class elimination by disabling shade minimization (would strip JDBC & SLF4J provider classes).
+ - Fixed minecart teleport event & sign/lever placement for modern API (use `spawn(target, Minecart.class)`, `addPassenger`, BlockData modifications, etc.).
+ - Corrected redstone and vehicle event method names and registrations (no longer silently ignored by Bukkit 1.20+/1.21 servers).
+ - Eliminated legacy STATIONARY_* material enum lookups causing IllegalArgumentException during shape parsing.
+ - Cleaned up inconsistent permission node checks referencing removed config flags (e.g. PERMISSIONS_DISABLE vs PERMISSIONS_SUPPORT_DISABLE).
+
+Breaking / Behavioral Notes:
+ - Custom gate material persistence for individual gates is currently disabled (materials are not restored from older saved numeric IDs); legacy gates still function but revert to shape or default materials. Future reimplementation may use Material names.
+ - World numeric IDs are ignored on load; world resolution is by name (aligns with modern Bukkit API). If a world is missing it will be (optionally) created; ensure backups before first 1.0.x startup.
+ - Some verbose / legacy log lines trimmed or reworded; scripts parsing console output may need adjustment.
+
+Upgrade Guidance:
+ - Upgrading from 1.0.1: Replace the jar with 1.0.2. No config edits required. This resolves startup failures related to JDBC DataSource / shaded jar minimization.
+ - Upgrading from pre-1.0.0 legacy releases: Back up your old plugin folder & database first. Deploy 1.0.2, allow it to start once, then validate gates. Legacy custom per-gate material selections won't be restored (see Breaking Notes). Shape files with STATIONARY_* values will load automatically via mapping.
+ - If you previously added SLF4J bindings manually, remove them; the shaded simple binding now loads correctly.
+
+Next (Planned / Consider):
+ - Optional: Bump `plugin.yml` api-version to 1.21 (currently 1.20) if target runtime stays on 1.21+.
+ - Reintroduce custom gate material persistence using Material names.
+ - Adventure text component migration for sign updates (remove deprecated setLine usage).
+ - Consolidate legacy DB manager and new repository layer.
+ - Optional Vault soft integration improvements once Vault is installed (currently logs only a warning if absent).
+
+Deploy 1.0.2 if 1.0.1 failed to enable due to HikariCP / JDBCDataSource errors or if you need the finalized listener & material modernization.
 
 Wormhole X-Treme 1.0.1 (2025-09-05)
 -----------------------------------
