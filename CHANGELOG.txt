@@ -1,3 +1,16 @@
+Wormhole X-Treme 1.0.3 (2025-09-05)
+------------------------------------
+Hotfix: legacy 2D shape material parsing (STATIONARY_WATER / STATIONARY_LAVA / PORTAL / GLOWING_REDSTONE_ORE) now maps to modern enums (WATER, LAVA, NETHER_PORTAL, GLOWSTONE) preventing startup IllegalArgumentException in `StargateShape`.
+
+Changes:
+ - Added resolveMaterial() to `StargateShape` (2D shapes) mirroring logic already present for 3D shapes.
+ - Fallback defaults to WATER with warning log if an unknown material name is encountered.
+
+Upgrade Guidance:
+ Replace 1.0.2 jar with 1.0.3 if you encountered: "No enum constant org.bukkit.Material.STATIONARY_WATER" while loading shape files.
+
+No data or config changes.
+
 Wormhole X-Treme 1.0.2 (2025-09-05)
 ------------------------------------
 Stability & completion pass for the modernization effort. Focus on database pooling reliability, listener/event API migration, legacy material & world handling, and permissions/config clean up.
