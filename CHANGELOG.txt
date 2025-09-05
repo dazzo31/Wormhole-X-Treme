@@ -1,3 +1,22 @@
+Wormhole X-Treme 1.0.0 (2025-09-05)
+-----------------------------------
+Modernization release targeting Spigot 1.20.4.
+
+Highlights:
+ - Migrated all legacy numeric block ID & data usage to Material + BlockData.
+ - Updated sign / lever handling (central helpers) and wall sign placement.
+ - Integrated ConfigMe (`config.yml`) replacing legacy settings file.
+ - Added Vault integration (permissions/chat) with simple & built-in fallback modes.
+ - Refactored gate shape detection; removed deprecated STATIONARY_* materials.
+ - Simplified DB layer (world numeric IDs removed, world loading via WorldCreator).
+ - Cleaned unused legacy serialization code and schema constants.
+ - Maintained deprecated Sign#setLine calls (suppressed) – future migration planned to Adventure API.
+ - Added modern README.md and updated plugin.yml to use ${project.version}.
+ - General code cleanup: null checks, listener API adjustments, removal of dead methods.
+
+Notes:
+Deprecated sign APIs remain temporarily; no gameplay regression expected. Back up old data before deploying.
+
 Changes 0.854 (5/17/11 @ 16:13 PST):
 
 - Updated chunk (un)loading to happen when gate (de)activates and when dial lever state
